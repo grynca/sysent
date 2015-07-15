@@ -67,7 +67,6 @@ int main() {
 
     }
 
-    std::cout << "press any key to quit ..." << std::endl;
-    getchar();
+    KEY_TO_CONTINUE();
     return 0;
 }
