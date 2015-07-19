@@ -7,22 +7,6 @@ namespace grynca {
 
         typedef void (*updateEntitiesFunc)(void *system, Entity &entity, double dt);
 
-        template<class S, class E>
-        using update_call_t = decltype(std::declval<S>().update(std::declval<Entity &>(), std::declval<E &>(), 0.0));
-
-        template<class S, class E>
-        using has_update = grynca::can_apply<update_call_t, S, E>;
-
-        namespace updates {
-            template<class S, class E>
-            typename std::enable_if<has_update<S, E>{}>::type
-            update(S *system, Entity &entity, E *ent_type, double dt) {
-                system->update(entity, *ent_type, dt);
-            }
-
-            void update(void *, Entity &, void *, double) { }
-        }
-
         struct UpdateFuncs {
             updateEntitiesFunc funcs[SystemTypes::getTypesCount()][EntityTypes::getTypesCount()];
         };
@@ -65,8 +49,7 @@ namespace grynca {
 
             template<class S, class E>
             static void updateFunc(void *system, Entity &entity, double dt) {
-                using internal::updates::update;
-                update(static_cast<S *>(system), entity, &entity.get<E>(), dt);
+                ((S*)system)->template update<E>(entity, entity.get<E>(), dt);
             }
 
         };

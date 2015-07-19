@@ -3,8 +3,8 @@
 
 #include "types/Manager.h"
 #include "types/Variant.h"
-#include "../setup/entity_roles.h"
-#include "../setup/entity_types.h"
+#include "setup/entity_roles.h"
+#include "setup/entity_types.h"
 
 namespace grynca {
     class EntityManager;

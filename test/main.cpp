@@ -1,5 +1,5 @@
 #include "base.h"
-#include "src/sysent.h"
+#include "sysent.h"
 
 #include <time.h>
 

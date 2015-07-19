@@ -1,8 +1,8 @@
 #ifndef SYSTEMMANAGER_H
 #define SYSTEMMANAGER_H
 
-#include "../setup/entity_types.h"
-#include "../setup/system_types.h"
+#include "setup/entity_types.h"
+#include "setup/system_types.h"
 
 #include "SystemManager_internal.h"
 #include <cassert>
