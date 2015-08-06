@@ -1,6 +1,7 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+#define ENTITY_TYPES() Orc, Rock
 
 class Orc {
 public:
@@ -12,6 +13,5 @@ class Rock {
 public:
     float position;
 };
-
 
 #endif //ENTITIES_H

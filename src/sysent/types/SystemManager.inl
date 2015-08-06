@@ -18,7 +18,7 @@ namespace grynca {
         uint32_t system_id = SystemTypes::pos<SystemType>();
         System* s =getSystem(system_id);
         assert(s);
-        return *s;
+        return *(SystemType*)s;
     }
 
     inline void SystemManager::updateSystem(uint32_t system_id, EntityManager& entity_manager, double dt) {
@@ -34,5 +34,10 @@ namespace grynca {
     template <typename SystemType>
     inline void SystemManager::updateSystem(EntityManager& entity_manager, double dt) {
         updateSystem(SystemTypes::pos<SystemType>(), entity_manager, dt);
+    }
+
+    inline void SystemManager::updateAllSystems(EntityManager& entity_manager, double dt) {
+        for (uint32_t i=0; i<SystemTypes::getTypesCount(); ++i)
+            updateSystem(i, entity_manager, dt);
     }
 }

@@ -7,7 +7,7 @@ using namespace grynca;
 
 VersionedIndex createOrc(EntityManager& em) {
     Entity& e = em.addItem();
-    e.setRoles(erCollidable | erMovable);
+    e.setRoles({erCollidable, erMovable});
     Orc& o = e.set<Orc>();
     o.position = rand()%100;
     o.speed = rand()%10;
@@ -16,7 +16,7 @@ VersionedIndex createOrc(EntityManager& em) {
 
 VersionedIndex createRock(EntityManager& em) {
     Entity& e = em.addItem();
-    e.setRoles(erCollidable);
+    e.setRoles({erCollidable});
     Rock& r = e.set<Rock>();
     r.position = rand()%100;
     return e.getId();

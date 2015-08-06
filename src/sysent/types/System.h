@@ -1,18 +1,10 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "../defs.h"
 #include "types/Manager.h"
+#include "types/Call.h"
 #include "functions/meta.h"
-#include "setup/entity_props.h"
-#include "setup/entity_roles.h"
-
-#define NEEDS_INNER(PROP) grynca::props::has_##PROP<T&>{}
-
-#define ENTITY_FUNC(MNAME, ...) \
-template <typename T> \
-typename std::enable_if< !(AND_ALL(NEEDS_INNER, __VA_ARGS__)) >::type MNAME(grynca::Entity&, ...){} \
-template <typename T> \
-typename std::enable_if< AND_ALL(NEEDS_INNER, __VA_ARGS__) >::type MNAME
 
 namespace grynca {
 

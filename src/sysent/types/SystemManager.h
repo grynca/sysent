@@ -1,10 +1,8 @@
 #ifndef SYSTEMMANAGER_H
 #define SYSTEMMANAGER_H
 
-#include "setup/entity_types.h"
-#include "setup/system_types.h"
-
 #include "SystemManager_internal.h"
+#include "../defs.h"
 #include <cassert>
 #include <string.h>
 
@@ -28,6 +26,7 @@ namespace grynca {
         template<typename SystemType>
         void updateSystem(EntityManager& entity_manager, double dt);
 
+        void updateAllSystems(EntityManager& entity_manager, double dt);
     private:
 
         System *systems_[SystemTypes::getTypesCount()];

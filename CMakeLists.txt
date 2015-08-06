@@ -9,5 +9,17 @@ include_directories(c:/DEV/gamedev/Base/src/)
 include_directories(src/)
 include_directories(test/)
 
-set(SOURCE_FILES test/main.cpp src/types/System.h src/types/SystemManager.h src/types/Entity.h src/types/EntityManager.h test/setup/entity_roles.h test/setup/entities.h src/types/SystemManager_internal.h test/setup/entity_types.h test/setup/systems.h test/setup/system_types.h test/setup/entity_props.h src/sysent.h)
+set(SOURCE_FILES
+ test/main.cpp
+ src/sysent/types/System.h
+ src/sysent/types/SystemManager.h
+ src/sysent/types/SystemManager.inl
+ src/sysent/types/Entity.h
+ src/sysent/types/EntityManager.h
+ src/sysent/types/SystemManager_internal.h
+ src/sysent/types/RolesMask.h
+ src/sysent.h
+ src/sysent/sysent_setup.h
+ src/sysent/defs.h
+ )
 add_executable(sysent ${SOURCE_FILES})
