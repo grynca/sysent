@@ -1,7 +1,6 @@
 #ifndef TTEST_SYSENT_H
 #define TTEST_SYSENT_H
 
-#include "sysent/sysent_setup.h"
 #include "sysent/types/RolesMask.h"
 #include "sysent/types/Entity.h"
 #include "sysent/types/EntityManager.h"

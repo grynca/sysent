@@ -1,10 +1,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include "../defs.h"
-#include "types/Manager.h"
-#include "types/Call.h"
-#include "functions/meta.h"
+#include "RolesMask.h"
 
 namespace grynca {
 

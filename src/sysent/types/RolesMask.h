@@ -2,7 +2,7 @@
 #define ROLESMASK_H
 
 #include <bitset>
-#include "../defs.h"
+#include "EntityRoles.h"
 
 namespace grynca {
 

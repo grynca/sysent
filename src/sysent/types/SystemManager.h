@@ -1,8 +1,8 @@
 #ifndef SYSTEMMANAGER_H
 #define SYSTEMMANAGER_H
 
+#include "SystemTypes.h"
 #include "SystemManager_internal.h"
-#include "../defs.h"
 #include <cassert>
 #include <string.h>
 

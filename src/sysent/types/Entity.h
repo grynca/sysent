@@ -4,6 +4,7 @@
 #include "types/Manager.h"
 #include "types/Variant.h"
 #include "RolesMask.h"
+#include "EntityTypes.h"
 
 namespace grynca {
     class EntityManager;
