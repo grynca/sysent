@@ -27,7 +27,7 @@ int main() {
     EntityManager em;
     SystemManager sm;
 
-    int n = 1e7;
+    int n = 1e6;
 
     em.reserveSpaceForItems(n);
     fast_vector<VersionedIndex> entity_ids;

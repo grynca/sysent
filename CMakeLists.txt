@@ -19,5 +19,9 @@ set(SOURCE_FILES
  src/sysent/types/SystemManager_internal.h
  src/sysent/types/RolesMask.h
  src/sysent.h
+ src/sysent/types/EntityRoles.h
+ src/sysent/types/EntityTypes.h
+ src/sysent/types/EntityProps.h
+ src/sysent/types/SystemTypes.h
  )
-add_executable(sysent ${SOURCE_FILES} src/sysent/types/EntityRoles.h src/sysent/types/EntityTypes.h src/sysent/types/EntityProps.h src/sysent/types/SystemTypes.h)
+add_executable(sysent ${SOURCE_FILES})
