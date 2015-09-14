@@ -5,20 +5,20 @@
 
 namespace grynca {
 
+    class Entity;
+
     class System {
     public:
-        System() : system_id_(-1) { }
-
+        System() { }
         virtual ~System() { }
 
-        int32_t getSystemId() { return system_id_; }
-
+        virtual void preUpdate() {}
+        virtual void update(grynca::Entity& e, float dt) = 0;
+        virtual void postUpdate() {}
         virtual RolesMask getNeededRoles() = 0;
 
-    private:
-        friend class SystemManager;
 
-        int32_t system_id_;
+    private:
     };
 }
 

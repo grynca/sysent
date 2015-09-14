@@ -21,16 +21,13 @@ namespace grynca {
         template<typename SystemType>
         SystemType &getSystem();
 
-        void updateSystem(uint32_t system_id, EntityManager& entity_manager, double dt);
+        void updateSystem(uint32_t system_id, EntityManager& entity_manager, float dt);
 
         template<typename SystemType>
-        void updateSystem(EntityManager& entity_manager, double dt);
-
-        void updateAllSystems(EntityManager& entity_manager, double dt);
+        void updateSystem(EntityManager& entity_manager, float dt);
     private:
 
         System *systems_[SystemTypes::getTypesCount()];
-        internal::UpdateFuncs updateFuncs_;
         internal::SystemManagerHelper helper_;
     };
 }

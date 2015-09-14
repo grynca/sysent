@@ -2,7 +2,6 @@
 #define SYSTEMTYPES_H
 
 #include "types/Type.h"
-#include "EntityProps.h"
 // provide system classes here
 #include "sysent_setup/systems.h"
 

@@ -1,2 +1,0 @@
-DECLARE_PROP(position);
-DECLARE_PROP(speed);

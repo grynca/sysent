@@ -4,7 +4,7 @@
 namespace grynca {
 
     inline SystemManager::SystemManager()
-        : helper_(systems_, updateFuncs_)
+        : helper_(systems_)
     {
     }
 
@@ -21,23 +21,21 @@ namespace grynca {
         return *(SystemType*)s;
     }
 
-    inline void SystemManager::updateSystem(uint32_t system_id, EntityManager& entity_manager, double dt) {
-        RolesMask needed_roles = systems_[system_id]->getNeededRoles();
+    inline void SystemManager::updateSystem(uint32_t system_id, EntityManager& entity_manager, float dt) {
+        System* s = systems_[system_id];
+        s->preUpdate();
+        RolesMask needed_roles = s->getNeededRoles();
         for (uint32_t i=0; i<entity_manager.getItemsCount(); ++i) {
             Entity& entity = entity_manager.getItemAtPos(i);
             if ( (needed_roles&entity.getRoles()) == needed_roles ) {
-                updateFuncs_.funcs[system_id][entity.getCurrentType()](systems_[system_id], entity, dt);
+                s->update(entity, dt);
             }
         }
+        s->postUpdate();
     }
 
     template <typename SystemType>
-    inline void SystemManager::updateSystem(EntityManager& entity_manager, double dt) {
+    inline void SystemManager::updateSystem(EntityManager& entity_manager, float dt) {
         updateSystem(SystemTypes::pos<SystemType>(), entity_manager, dt);
-    }
-
-    inline void SystemManager::updateAllSystems(EntityManager& entity_manager, double dt) {
-        for (uint32_t i=0; i<SystemTypes::getTypesCount(); ++i)
-            updateSystem(i, entity_manager, dt);
     }
 }
