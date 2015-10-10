@@ -4,13 +4,14 @@
 #include "types/Manager.h"
 #include "types/Variant.h"
 #include "RolesMask.h"
-#include "EntityTypes.h"
 
 namespace grynca {
-    class EntityManager;
+    template<typename EntityTypes> class EntityManager;
 
-    class Entity : public ManagedItemVersioned<EntityManager>,
-                   public Variant<EntityTypes>
+
+    template <typename EntityTypes>
+    class Entity : public ManagedItemVersioned<EntityManager<EntityTypes> >,
+                    public Variant<EntityTypes>
     {
     public:
         const RolesMask& getRoles() { return roles_; }

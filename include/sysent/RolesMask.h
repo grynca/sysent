@@ -2,16 +2,17 @@
 #define ROLESMASK_H
 
 #include <bitset>
-#include "EntityRoles.h"
 
 namespace grynca {
 
     class RolesMask {
     public:
+        static constexpr int MAX_ROLES = 128;
+
         RolesMask() {}
-        RolesMask(std::initializer_list<EntityRoles> il) {
+        RolesMask(std::initializer_list<int> il) {
             for (auto it = il.begin(); it!=il.end(); ++it) {
-                roles_mask_.set(*it);
+                set(*it);
             }
         }
 
@@ -26,13 +27,13 @@ namespace grynca {
             set(roles...);
         }
 
-        bool operator== (const RolesMask& rhs) const {
+        bool operator== (const RolesMask & rhs) const {
             return rhs.roles_mask_ == roles_mask_;
         }
 
         friend RolesMask operator& (const RolesMask& lhs, const RolesMask& rhs);
     private:
-        std::bitset<EntityRoles::erCount> roles_mask_;
+        std::bitset<MAX_ROLES> roles_mask_;
     };
 
     inline RolesMask operator& (const RolesMask& lhs, const RolesMask& rhs) {

@@ -3,17 +3,16 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/Entity.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/EntityManager.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/EntityRoles.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/EntityTypes.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/RolesMask.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/System.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/SystemManager.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/SystemManager.inl" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/SystemManager_internal.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/sysent/types/SystemTypes.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityManager.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/Entity.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/RolesMask.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SysentDomain.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemManager.inl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemManager.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemManager_internal.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemT.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/entities.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/main.cpp" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
     </content>
@@ -23,7 +22,7 @@
       <library name="Header Search Paths">
         <CLASSES>
           <root url="file://$MODULE_DIR$/../base/src" />
-          <root url="file://$MODULE_DIR$/src" />
+          <root url="file://$MODULE_DIR$/include" />
           <root url="file://$MODULE_DIR$/test" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
@@ -32,7 +31,7 @@
         </CLASSES>
         <SOURCES>
           <root url="file://$MODULE_DIR$/../base/src" />
-          <root url="file://$MODULE_DIR$/src" />
+          <root url="file://$MODULE_DIR$/include" />
           <root url="file://$MODULE_DIR$/test" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
@@ -40,17 +39,16 @@
           <root url="file:///usr/local/include" />
         </SOURCES>
         <excluded>
-          <root url="file://$MODULE_DIR$/src/sysent.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/SystemManager.inl" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/RolesMask.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/EntityManager.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/System.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/EntityTypes.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/EntityRoles.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/Entity.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/SystemTypes.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/SystemManager_internal.h" />
-          <root url="file://$MODULE_DIR$/src/sysent/types/SystemManager.h" />
+          <root url="file://$MODULE_DIR$/include/sysent.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/SystemManager.inl" />
+          <root url="file://$MODULE_DIR$/include/sysent/RolesMask.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/EntityManager.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/SystemT.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/SysentDomain.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/Entity.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/SystemManager_internal.h" />
+          <root url="file://$MODULE_DIR$/include/sysent/SystemManager.h" />
+          <root url="file://$MODULE_DIR$/test/entities.h" />
           <root url="file://$MODULE_DIR$/test/main.cpp" />
         </excluded>
       </library>

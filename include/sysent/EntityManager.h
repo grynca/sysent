@@ -4,10 +4,11 @@
 #include "Entity.h"
 namespace grynca {
 
-    class EntityManager : public ManagerVersioned<Entity> {
+    template <typename EntityTypes>
+    class EntityManager : public ManagerVersioned<Entity<EntityTypes> > {
     public:
         EntityManager(uint32_t initial_reserve = 10000) {
-            reserveSpaceForItems(initial_reserve);
+            ManagerVersioned<Entity<EntityTypes> >::reserveSpaceForItems(initial_reserve);
         }
     };
 }

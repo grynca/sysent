@@ -6,21 +6,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++0x" )
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-omit-frame-pointer -gdwarf-2" )
 
 include_directories(/home/grynca/DEV/gamedev/base/src)
-include_directories(src/)
+include_directories(include/)
 include_directories(test/)
 
 set(SOURCE_FILES
-   test/main.cpp
-   src/sysent/types/System.h
-   src/sysent/types/SystemManager.h
-   src/sysent/types/SystemManager.inl
-   src/sysent/types/Entity.h
-   src/sysent/types/EntityManager.h
-   src/sysent/types/SystemManager_internal.h
-   src/sysent/types/RolesMask.h
-   src/sysent.h
-   src/sysent/types/EntityRoles.h
-   src/sysent/types/EntityTypes.h
-   src/sysent/types/SystemTypes.h
- )
+        include/sysent/SystemManager.h
+        include/sysent/SystemManager.inl
+        include/sysent/Entity.h
+        include/sysent/EntityManager.h
+        include/sysent/SystemManager_internal.h
+        include/sysent/RolesMask.h
+        include/sysent.h
+
+        test/main.cpp
+        test/entities.h
+)
 add_executable(sysent ${SOURCE_FILES})

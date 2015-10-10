@@ -1,22 +1,23 @@
 #include "base.h"
 #include "sysent.h"
+#include "entities.h"
 
 #include <time.h>
 
 using namespace grynca;
 
-VersionedIndex createOrc(EntityManager& em) {
-    Entity& e = em.addItem();
-    e.setRoles({erCollidable, erMovable});
+VersionedIndex createOrc(EntityManager<EntityTypes>& em) {
+    Entity<EntityTypes>& e = em.addItem();
+    e.setRoles({EntityRoles::erCollidable, EntityRoles::erMovable});
     Orc& o = e.set<Orc>();
     o.position = rand()%100;
     o.speed = rand()%10;
     return e.getId();
 }
 
-VersionedIndex createRock(EntityManager& em) {
-    Entity& e = em.addItem();
-    e.setRoles({erCollidable});
+VersionedIndex createRock(EntityManager<EntityTypes>& em) {
+    Entity<EntityTypes>& e = em.addItem();
+    e.setRoles({EntityRoles::erCollidable});
     Rock& r = e.set<Rock>();
     r.position = rand()%100;
     return e.getId();
@@ -24,8 +25,9 @@ VersionedIndex createRock(EntityManager& em) {
 
 int main() {
     srand(time(0));
-    EntityManager em;
-    SystemManager sm;
+    EntityManager<EntityTypes> em;
+    SystemManager<EntityTypes, SystemTypes> sm(em);
+    sm.init();
 
     int n = 1e6;
 
@@ -52,7 +54,7 @@ int main() {
     {
         BlockMeasure m("Update");
         for (uint32_t i=0; i<10; ++i)
-            sm.updateSystem<MovementSystem>(em, 0.1);
+            sm.update(0.1);
         m.setDivider(10);
     }
 
