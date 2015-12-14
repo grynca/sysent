@@ -8,8 +8,8 @@ using namespace grynca;
 
 VersionedIndex createOrc(EntityManager<EntityTypes>& em) {
     Entity<EntityTypes>& e = em.addItem();
-    e.setRoles({EntityRoles::erCollidable, EntityRoles::erMovable});
     Orc& o = e.set<Orc>();
+    o.setRoles({EntityRoles::erCollidable, EntityRoles::erMovable});
     o.position = rand()%100;
     o.speed = rand()%10;
     return e.getId();
@@ -17,8 +17,8 @@ VersionedIndex createOrc(EntityManager<EntityTypes>& em) {
 
 VersionedIndex createRock(EntityManager<EntityTypes>& em) {
     Entity<EntityTypes>& e = em.addItem();
-    e.setRoles({EntityRoles::erCollidable});
     Rock& r = e.set<Rock>();
+    r.setRoles({EntityRoles::erCollidable});
     r.position = rand()%100;
     return e.getId();
 }
@@ -59,14 +59,26 @@ int main() {
     }
 
     fast_vector<unsigned int> picked;
+
+
+//    randomPickN(picked, n, n);
+//    {
+//        BlockMeasure m("Deletion direct");
+//        while(!picked.empty()) {
+//            em.removeItem(entity_ids[picked.back()]);
+//            picked.pop_back();
+//        }
+//
+//    }
+
     randomPickN(picked, n, n);
     {
-        BlockMeasure m("Deletion");
+        BlockMeasure m("Deletion defered");
         while(!picked.empty()) {
-            em.removeItem(entity_ids[picked.back()]);
+            em.getItem(entity_ids[picked.back()]).kill();
             picked.pop_back();
         }
-
+        sm.update(0.1);
     }
 
     KEY_TO_CONTINUE();

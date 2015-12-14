@@ -19,6 +19,5 @@ set(SOURCE_FILES
         include/sysent.h
 
         test/main.cpp
-        test/entities.h
-)
+        test/entities.h)
 add_executable(sysent ${SOURCE_FILES})

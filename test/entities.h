@@ -24,7 +24,7 @@ public:
     virtual void move(float dt) = 0;
 };
 
-class Orc : public Movable {
+class Orc : public Movable, public EntityBase {
 public:
     float position;
     float speed;
@@ -34,7 +34,7 @@ private:
     }
 };
 
-class Rock {
+class Rock : public EntityBase {
 public:
     float position;
 };
