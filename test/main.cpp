@@ -6,33 +6,29 @@
 
 using namespace grynca;
 
-VersionedIndex createOrc(EntityManager<EntityTypes>& em) {
-    Entity<EntityTypes>& e = em.addItem();
-    Orc& o = e.set<Orc>();
-    o.setRoles({EntityRoles::erCollidable, EntityRoles::erMovable});
-    o.position = rand()%100;
-    o.speed = rand()%10;
-    return e.getId();
+EntityIndex createOrc(EntityManager& em) {
+    Entity o = em.createEntity(EntityTypes::pos<Orc>());
+    o.getComponent<CMovable>().position = rand()%100;
+    o.getComponent<CMovable>().speed = rand()%10;
+    return o.getIndex();
 }
 
-VersionedIndex createRock(EntityManager<EntityTypes>& em) {
-    Entity<EntityTypes>& e = em.addItem();
-    Rock& r = e.set<Rock>();
-    r.setRoles({EntityRoles::erCollidable});
-    r.position = rand()%100;
-    return e.getId();
+EntityIndex createRock(EntityManager& em) {
+    Entity r = em.createEntity(EntityTypes::pos<Rock>());
+    r.getComponent<CMovable>().position = rand()%100;
+    r.getComponent<CMovable>().speed = 0;
+    return r.getIndex();
 }
 
 int main() {
     srand(time(0));
-    EntityManager<EntityTypes> em;
-    SystemManager<EntityTypes, SystemTypes> sm(em);
-    sm.init();
-
     int n = 1e6;
+    EntityManager em;
+    em.init<EntityTypes>(n, 1);
+    em.addSystem<TeleportSystem>(0);
+    em.addSystem<MovementSystem>(0);
 
-    em.reserveSpaceForItems(n);
-    fast_vector<VersionedIndex> entity_ids;
+    fast_vector<EntityIndex> entity_ids;
     entity_ids.reserve(n);
 
     std::cout << "Number of entities: " << std::to_string(n) << std::endl;
@@ -48,37 +44,29 @@ int main() {
                     entity_ids.push_back(createRock(em));
                     break;
 
-        }}
+            }
+        }
     }
 
     {
         BlockMeasure m("Update");
-        for (uint32_t i=0; i<10; ++i)
-            sm.update(0.1);
-        m.setDivider(10);
+        for (uint32_t i=0; i<10; ++i) {
+            em.updateSystemsPack(0, 0.1);
+            m.incCounter();
+        }
     }
 
     fast_vector<unsigned int> picked;
 
 
-//    randomPickN(picked, n, n);
-//    {
-//        BlockMeasure m("Deletion direct");
-//        while(!picked.empty()) {
-//            em.removeItem(entity_ids[picked.back()]);
-//            picked.pop_back();
-//        }
-//
-//    }
-
     randomPickN(picked, n, n);
     {
-        BlockMeasure m("Deletion defered");
+        BlockMeasure m("Deletion");
         while(!picked.empty()) {
-            em.getItem(entity_ids[picked.back()]).kill();
+            em.getEntity(entity_ids[picked.back()]).kill();
             picked.pop_back();
         }
-        sm.update(0.1);
+        em.updateSystemsPack(0, 0.1);
     }
 
     KEY_TO_CONTINUE();
