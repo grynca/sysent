@@ -22,7 +22,8 @@ namespace grynca {
         template <typename EntityTypes>
         void init(uint32_t initial_reserve, uint32_t system_packs_count);
 
-        Entity createEntity(uint16_t entity_type_id);
+        Entity createEntity(uint16_t entity_type_id);       // caller must add to systems afterwards
+        void addToSystems(Entity& ent);
 
         Entity getEntity(EntityIndex id);           // faster does not check for validity
         Entity tryGetEntity(EntityIndex id);        // checks for validity, check e.isValid()
@@ -83,7 +84,6 @@ namespace grynca {
         void beforeEntityRolesChanged_(Entity& ent, const RolesMask& new_roles);
 
         fast_vector<SystemsPack> systems_packs_;
-        fast_vector<EntityVec> deferred_add_to_systems_;
         fast_vector<EntityTypeCtx> entity_types_;
         fast_vector<uint32_t> type_ids_map_; // maps internal type ids to type ids in entity types pack
 

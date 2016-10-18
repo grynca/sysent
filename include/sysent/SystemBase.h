@@ -47,7 +47,7 @@ namespace grynca {
 
         EntityManager* manager_;
         RolesMask needed_roles_;
-        fast_vector<fast_vector<uint32_t> > relevant_entities_;
+        fast_vector<fast_vector<uint32_t> > relevant_entities_;     // sorted indices of relevant entities (vector for each entity type)
         fast_vector<uint32_t> flag_positions_;
         FlagsMaskLong flag_positions_mask_;
     };

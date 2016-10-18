@@ -24,8 +24,6 @@ namespace grynca {
     inline void EntityManager::init(uint32_t initial_reserve, uint32_t system_packs_count) {
         EntityTypes::template callOnTypes<EntityTypesInitializer_>(*this, initial_reserve);
         systems_packs_.resize(system_packs_count);
-        deferred_add_to_systems_.resize(system_packs_count);
-
 
 #ifdef DEBUG_BUILD
         std::cout << "Component types:" << std::endl;
@@ -65,11 +63,18 @@ namespace grynca {
         new_ent.mgr_ = this;
         etctx.ent_type_info_.callCompsDefConstructor(new_ent);
         new_ent.getBase_().roles_ = etctx.ent_type_info_.getComponentRoles();
-
-        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
-            deferred_add_to_systems_[i].push_back(new_ent);
-        }
         return new_ent;
+    }
+
+    inline void EntityManager::addToSystems(Entity& ent) {
+        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
+            for (uint32_t j=0; j<systems_packs_[i].size(); ++j) {
+                SystemBase* s = systems_packs_[i][j];
+                if (!s->careAboutEntity(ent))
+                    continue;
+                addEntityToSystemInternal_(ent, s);
+            }
+        }
     }
 
     inline Entity EntityManager::getEntity(EntityIndex id) {
@@ -130,21 +135,6 @@ namespace grynca {
 
     inline void EntityManager::updateSystemsPack(uint32_t systems_pack_id, float dt) {
         ASSERT(systems_pack_id < systems_packs_.size());
-
-        if (!deferred_add_to_systems_[systems_pack_id].empty()) {
-            uint32_t def_cnt = deferred_add_to_systems_[systems_pack_id].size();
-            for (uint32_t i=0; i<def_cnt; ++i) {
-                // add entities to systems
-                Entity& ent = deferred_add_to_systems_[systems_pack_id][i];
-                for (uint32_t j=0; j<systems_packs_[systems_pack_id].size(); ++j) {
-                    SystemBase* s = systems_packs_[systems_pack_id][j];
-                    if (!s->careAboutEntity(ent))
-                        continue;
-                    addEntityToSystemInternal_(ent, s);
-                }
-            }
-            deferred_add_to_systems_[systems_pack_id].clear();
-        }
 
         for (uint32_t i=0; i<systems_packs_[systems_pack_id].size(); ++i) {
             // preupdate

@@ -10,6 +10,7 @@ EntityIndex createOrc(EntityManager& em) {
     Entity o = em.createEntity(EntityTypes::pos<Orc>());
     o.getComponent<CMovable>().position = rand()%100;
     o.getComponent<CMovable>().speed = rand()%10;
+    em.addToSystems(o);
     return o.getIndex();
 }
 
@@ -17,6 +18,7 @@ EntityIndex createRock(EntityManager& em) {
     Entity r = em.createEntity(EntityTypes::pos<Rock>());
     r.getComponent<CMovable>().position = rand()%100;
     r.getComponent<CMovable>().speed = 0;
+    em.addToSystems(r);
     return r.getIndex();
 }
 
