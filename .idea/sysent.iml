@@ -3,15 +3,17 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityTypeInfo.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/Masks.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityTypeInfo.inl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/Entity.inl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/System.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemFlagged.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityIndex.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include/sysent/Mask.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityManager.inl" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemBase.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/Entity.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityManager.inl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/System.inl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent/EntityManager.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemBase.inl" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/sysent/SystemFlagged.inl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/sysent.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/main.cpp" isTestSource="false" />
@@ -21,15 +23,15 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include" />
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include-fixed" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include-fixed" />
           <root url="file://C:/MinGW/mingw32/include" />
           <root url="file://C:/MinGW/include" />
           <root url="file://$MODULE_DIR$/../base/src" />
         </CLASSES>
         <SOURCES>
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include" />
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include-fixed" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include-fixed" />
           <root url="file://C:/MinGW/mingw32/include" />
           <root url="file://C:/MinGW/include" />
           <root url="file://$MODULE_DIR$/../base/src" />

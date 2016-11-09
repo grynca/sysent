@@ -1,87 +1,89 @@
 #include "Entity.h"
 #include "EntityManager.h"
-#include "SystemBase.h"
+#include "System.h"
 
 namespace grynca {
 
     template <typename ComponentType>
     inline ComponentType& Entity::getComponent() {
-        uint32_t offset = getTypeInfo().getComponentOffset<ComponentType>();
-        assert(offset != uint32_t(-1));
-        return *(ComponentType*)(comps_data_+offset);
+        u32 comp_pos = getTypeInfo().getComponentPos<ComponentType>();
+        u8* comp_data = mgr_->getEntitiesPool(index_.getEntityTypeId()).get(index_.getInnerIndex(), comp_pos);
+        return *(ComponentType*)(comp_data);
     }
 
     template <typename ComponentType>
     inline const ComponentType& Entity::getComponent()const {
-        uint32_t offset = getTypeInfo().getComponentOffset<ComponentType>();
-        assert(offset != uint32_t(-1));
-        return *(ComponentType*)(comps_data_+offset);
+        u32 comp_pos = getTypeInfo().getComponentPos<ComponentType>();
+        u8* comp_data = mgr_->getEntitiesPool(index_.getEntityTypeId()).get(index_.getInnerIndex(), comp_pos);
+        return *(ComponentType*)(comp_data);
     }
 
     inline const EntityTypeInfo& Entity::getTypeInfo()const {
         return mgr_->getEntityTypeInfo(index_.getEntityTypeId());
     }
 
-    inline void Entity::updateDataPointer() {
-        comps_data_ = mgr_->getEntity(index_).comps_data_;
+    inline void Entity::kill() {
+        mgr_->beforeEntityKilled_(*this);
     }
 
-    inline void Entity::kill() {
-        mgr_->removeEntityFromSystems_(*this);
+    inline void Entity::create() {
+        mgr_->afterEntityCreated_(*this);
+    }
+
+    inline RolesMask& Entity::accRoles() {
+        return getBase_().roles_;
     }
 
     inline const RolesMask& Entity::getRoles() {
         return getBase_().roles_;
     }
 
-    inline void Entity::setRoles(const RolesMask& roles) {
-        mgr_->beforeEntityRolesChanged_(*this, roles);
-        getBase_().roles_ = roles;
+    inline void Entity::addRole(u32 role_id) {
+        mgr_->beforeEntityRoleAdded_(*this, role_id);
+        getBase_().roles_ |= 1<<role_id;
     }
 
-    inline bool Entity::hasRoles(const RolesMask& roles) {
-        return (getRoles()&roles) == roles;
+    inline void Entity::removeRole(u32 role_id) {
+        mgr_->beforeEntityRoleRemoved_(*this, role_id);
+        getBase_().roles_ &= ~(1<<role_id);
     }
 
-    inline void Entity::addRoles(const RolesMask& roles) {
-        mgr_->beforeEntityRolesChanged_(*this, roles);
-        getBase_().roles_ |= roles;
-    }
-
-    inline const FlagsMaskLong& Entity::getFlagsMask() {
+    inline const FlagsMask& Entity::getFlags()const {
         return getBase_().flags_;
     }
 
-    inline void Entity::setFlag(uint8_t flag_id) {
-        getBase_().flags_ |= mgr_->flag_bits_[flag_id];
+    inline void Entity::setFlag(u32 flag_id) {
+        getBase_().next_flags_ |= 1<<flag_id;
     }
 
-    inline void Entity::clearFlag(uint8_t flag_id) {
-        getBase_().flags_ &= ~mgr_->flag_bits_[flag_id];
+    inline void Entity::setFlags(const FlagsMask& fm) {
+        getBase_().next_flags_ |= fm;
     }
 
-    inline bool Entity::getFlag(SystemBase* system, uint8_t flag_id) {
-        return getBase_().flags_[system->getFlagPosition_(flag_id)];
+    inline FlagsMask& Entity::accFlags() {
+        return getBase_().flags_;
     }
 
-    inline uint8_t* Entity::getData() {
-        return comps_data_;
+    inline const FlagsMask& Entity::getNextFlags()const {
+        return getBase_().next_flags_;
     }
 
-    inline const uint8_t* Entity::getData()const {
-        return comps_data_;
-    }
-
-    inline void Entity::clearTrackedFlagsForSystem_(SystemBase* system) {
-        getBase_().flags_ &= ~(system->flag_positions_mask_);
+    inline FlagsMask& Entity::accNextFlags() {
+        return getBase_().next_flags_;
     }
 
     inline CBase& Entity::getBase_() {
-        return *(CBase*)comps_data_;
+        u8* comp_data = mgr_->getEntitiesPool(index_.getEntityTypeId()).get(index_.getInnerIndex(), 0);
+        return *(CBase*)comp_data;
+    }
+
+    inline const CBase& Entity::getBase_()const {
+        u8* comp_data = mgr_->getEntitiesPool(index_.getEntityTypeId()).get(index_.getInnerIndex(), 0);
+        return *(CBase*)comp_data;
     }
 
     template <typename ComponentTypes>
-    inline RolesMask Entity::getComponentsRoles_() {
+    inline RolesMask Entity::getInitialComponentsRoles_() {
     // static
         RolesMask roles;
         ComponentTypes::template callOnTypes<InitialRolesGetter_>(roles);

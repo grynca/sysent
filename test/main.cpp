@@ -1,43 +1,41 @@
-#include "base.h"
-#include "sysent.h"
 #include "entities.h"
-
 #include <time.h>
 
 using namespace grynca;
 
 EntityIndex createOrc(EntityManager& em) {
-    Entity o = em.createEntity(EntityTypes::pos<Orc>());
-    o.getComponent<CMovable>().position = rand()%100;
-    o.getComponent<CMovable>().speed = rand()%10;
-    em.addToSystems(o);
+    Entity o = em.newEntity(EntityTypes::pos<Orc>());
+    o.getComponent<CMovable>().position = rand()%3000 + 4000;
+    o.getComponent<CMovable>().speed = rand()%1000;
+    o.create();
     return o.getIndex();
 }
 
 EntityIndex createRock(EntityManager& em) {
-    Entity r = em.createEntity(EntityTypes::pos<Rock>());
-    r.getComponent<CMovable>().position = rand()%100;
+    Entity r = em.newEntity(EntityTypes::pos<Rock>());
+    r.getComponent<CMovable>().position = rand()%5000 + 2000;
     r.getComponent<CMovable>().speed = 0;
-    em.addToSystems(r);
+    r.create();
     return r.getIndex();
 }
 
 int main() {
     srand(time(0));
-    int n = 1e6;
+    u32 n = 1e6;
     EntityManager em;
     em.init<EntityTypes>(n, 1);
-    em.addSystem<TeleportSystem>(0);
-    em.addSystem<MovementSystem>(0);
+    TeleportSystem& ts = em.addSystem<TeleportSystem>(0);
+    MovementSystem& ms = em.addSystem<MovementSystem>(0);
+    CheckBoundsSystem& chbs = em.addSystem<CheckBoundsSystem>(0);
 
     fast_vector<EntityIndex> entity_ids;
     entity_ids.reserve(n);
 
-    std::cout << "Number of entities: " << std::to_string(n) << std::endl;
+    std::cout << "Number of entities: " << string_utils::toString(n) << std::endl;
 
     {
         BlockMeasure m("Creation");
-        for (uint32_t i=0; i< n; ++i) {
+        for (u32 i=0; i< n; ++i) {
             switch (rand()%2) {
                 case 0:
                     entity_ids.push_back(createOrc(em));
@@ -45,17 +43,19 @@ int main() {
                 case 1:
                     entity_ids.push_back(createRock(em));
                     break;
-
             }
         }
     }
 
     {
-        BlockMeasure m("Update");
-        for (uint32_t i=0; i<10; ++i) {
-            em.updateSystemsPack(0, 0.1);
-            m.incCounter();
+        Measure m;
+        for (u32 i=0; i<10; ++i) {
+            m.from();
+            em.updateSystemsPipeline(0, 0.1);
+            std::cout << "teleported: " << ts.teleported_ << ", moved: " << ms.moved_ << ", oob: " << chbs.fixed_pos_ << std::endl;
+            m.to();
         }
+        m.print("Update");
     }
 
     fast_vector<unsigned int> picked;
@@ -68,8 +68,12 @@ int main() {
             em.getEntity(entity_ids[picked.back()]).kill();
             picked.pop_back();
         }
-        em.updateSystemsPack(0, 0.1);
     }
+    em.updateSystemsPipeline(0, 0.1);
+
+#ifdef PROFILE_BUILD
+    std::cout << em.getProfileString();
+#endif
 
     KEY_TO_CONTINUE();
     return 0;

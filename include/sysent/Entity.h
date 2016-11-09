@@ -2,16 +2,19 @@
 #define ENTITY_H
 
 #include "types/Type.h"
-#include "Mask.h"
+#include "Masks.h"
 #include "EntityIndex.h"
 #include <bitset>
+
+#define MAX_ENTITY_COMPS 32
+#define MAX_COMPONENT_SIZE 64       // must fit to cache line
 
 namespace grynca {
 
     // fw
     class EntityManager;
     class EntityTypeInfo;
-    class SystemBase;
+    class System;
 
     class CBase {
     public:
@@ -21,7 +24,10 @@ namespace grynca {
         friend class EntityManager;
 
         RolesMask roles_;
-        FlagsMaskLong flags_;
+
+        // Double buffering for flags
+        FlagsMask flags_;           // resolved flags
+        FlagsMask next_flags_;      // not yet resolved flags
     };
 
 
@@ -37,39 +43,38 @@ namespace grynca {
 
         const EntityTypeInfo& getTypeInfo()const;
 
-        void updateDataPointer();
         void kill();
+        void create();
 
         EntityIndex getIndex()const { return index_; }
         EntityManager& getManager()const { return *mgr_; }
-        uint8_t* getComponentsData() { return comps_data_; }
 
-        // roles & flags setting
+        // Roles
+        RolesMask& accRoles();
         const RolesMask& getRoles();
-        void setRoles(const RolesMask& roles);
-        bool hasRoles(const RolesMask& roles);
-        void addRoles(const RolesMask& roles);
+        void addRole(u32 role_id);
+        void removeRole(u32 role_id);
 
         // Flags:
-        const FlagsMaskLong& getFlagsMask();
-        void setFlag(uint8_t flag_id);      //  set for all systems that are tracking it
-        void clearFlag(uint8_t flag_id);    //  cleared for all systems that are tracking it
-        bool getFlag(SystemBase* system, uint8_t flag_id);  // getting flags is per-system
-
-        uint8_t* getData();
-        const uint8_t* getData()const;
+        FlagsMask& accFlags();
+        const FlagsMask& getFlags()const;
+        void setFlag(u32 flag_id);
+        void setFlags(const FlagsMask& fm);
+        FlagsMask& accNextFlags();
+        const FlagsMask& getNextFlags()const;
 
         bool isValid() { return index_ != EntityIndex::Invalid(); }
-
     protected:
         friend class EntityTypeInfo;
         friend class EntityManager;
+        friend class System;
+        friend class SystemFlagged;
 
-        void clearTrackedFlagsForSystem_(SystemBase* system);
         CBase& getBase_();
+        const CBase& getBase_()const;
 
         template <typename ComponentTypes>
-        static RolesMask getComponentsRoles_();
+        static RolesMask getInitialComponentsRoles_();
 
         struct InitialRolesGetter_ {
             template <typename TP, typename T>
@@ -78,7 +83,6 @@ namespace grynca {
             };
         };
 
-        uint8_t* comps_data_;
         EntityIndex index_;
         EntityManager* mgr_;
     };

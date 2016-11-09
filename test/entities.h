@@ -15,14 +15,19 @@ DEFINE_ENUM(EntityFlags,
             efTeleported
 );
 
+#define ROLES_CNT EntityFlags::end
+#define FLAGS_CNT EntityRoles::end
+
+#include "sysent.h"
+
 class CMovable {
 public:
     static RolesMask componentRoles() {
-        return {EntityRoles::erMovable, EntityRoles::erTeleportable};
+        return EntityRoles::erMovableMask() | EntityRoles::erTeleportableMask();
     }
 
-    float position;
-    float speed;
+    f32 position;
+    f32 speed;
 };
 
 class Orc : public EntityDef<CMovable> {
@@ -35,85 +40,104 @@ public:
 
 };
 
-class TeleportSystem : public SystemBase {
+class TeleportSystem : public System {
 public:
-    virtual RolesMask getNeededRoles() override {
-        return {EntityRoles::erTeleportable};
-    }
 
-    virtual FlagsMask getTrackedFlags() override {
-        return {EntityFlags::efMoved, EntityFlags::efTeleported};
-    }
+    TeleportSystem() : teleported_(0) {}
 
-    virtual void updateEntity(Entity& e, float dt) override {
-        if (!e.getFlag(this, EntityFlags::efMoved)) {
-            if (rand()%2)
-                teleportEntity(e);
-        }
-    }
-
-    static void teleportEntity(Entity& e) {
-        //std::cout << "  " << e.getIndex() << " teleported" << std::endl;
-        e.setFlag(EntityFlags::efTeleported);
-        e.getComponent<CMovable>().position = rand();
-    }
-};
-
-
-class MovementSystem : public SystemBase
-{
-public:
-    MovementSystem() : added(0), removed(0) {}
-
-    virtual RolesMask getNeededRoles() override {
-        return {EntityRoles::erMovable};
-    }
-
-    virtual FlagsMask getTrackedFlags() override {
-        return {EntityFlags::efMoved, EntityFlags::efTeleported};
-    }
-
-    virtual void updateEntity(Entity& e, float dt) override {
-        if (!e.getFlag(this, EntityFlags::efTeleported)) {
-            moveEntity(e, dt);
-        }
+    virtual RolesMask NeededRoles() override {
+        return EntityRoles::erTeleportableMask();
     }
 
     virtual void preUpdate() override {
-        if (added) {
-            std::cout << " Movement system: added relevant entities: " << added << std::endl;
+        teleported_ = 0;
+    }
+
+    virtual void updateEntity(Entity& e, f32 dt) override {
+        if (!e.getFlags()[EntityFlags::efMovedId]) {
+            if (rand()%2) {
+                teleportEntity(e);
+            }
         }
-        if (removed) {
-            std::cout << " Movement system: removed relevant entities: " << removed << std::endl;
-        }
+        resolveEntityFlag(e, EntityFlags::efTeleportedId);
     }
 
-    virtual void afterAddedEntity(Entity& e) override {
-        ++added;
+    void teleportEntity(Entity& e) {
+        e.setFlags(EntityFlags::efTeleportedMask());
+        CMovable& cm = e.getComponent<CMovable>();
+        cm.position = rand()%10000;
+        ++teleported_;
     }
 
-    virtual void beforeRemovedEntity(Entity& e) override {
-        ++removed;
-    }
-
-    virtual void postUpdate() override {
-        added = removed = 0;
-    }
-
-
-    static void setEntityPosition(Entity& e, float pos) {
-        e.setFlag(EntityFlags::efMoved);
-        e.getComponent<CMovable>().position = pos;
-    }
-
-    static void moveEntity(Entity& e, float dt) {
-        //std::cout << "  " << e.getIndex() << " moved" << std::endl;
-        e.setFlag(EntityFlags::efMoved);
-        e.getComponent<CMovable>().position += e.getComponent<CMovable>().speed * dt;
-    }
-
-    uint32_t added, removed;
+    u32 teleported_;
 };
+
+
+class MovementSystem : public System
+{
+public:
+    MovementSystem() : moved_(0) {}
+
+    virtual RolesMask NeededRoles() override {
+        return EntityRoles::erMovableMask();
+    }
+
+    virtual void preUpdate() override {
+        moved_ = 0;
+    }
+
+    virtual void updateEntity(Entity& e, f32 dt) override {
+        if (!e.getFlags()[EntityFlags::efTeleportedId]) {
+            moveEntity(e, dt);
+        }
+        resolveEntityFlag(e, EntityFlags::efMovedId);
+    }
+
+    void moveEntity(Entity& e, f32 dt) {
+        e.setFlags(EntityFlags::efMovedMask());
+        CMovable& cm =e.getComponent<CMovable>();
+        cm.position += cm.speed * dt;
+        ++moved_;
+    }
+
+    u32 moved_;
+};
+
+class CheckBoundsSystem : public SystemFlagged
+{
+public:
+    CheckBoundsSystem() : fixed_pos_(0) {}
+
+    virtual RolesMask NeededRoles() override {
+        return EntityRoles::erMovableMask();
+    }
+
+    virtual FlagsMask NeededFlagsAny() override {
+        return EntityFlags::efMovedMask() | EntityFlags::efTeleportedMask();
+    }
+
+    virtual void preUpdate() override {
+        fixed_pos_ = 0;
+    }
+
+    virtual void updateEntity(Entity& e, f32 dt) override {
+        CMovable& cm = e.getComponent<CMovable>();
+        if (cm.position < 2000) {
+            cm.position = 2000;
+            e.setFlag(EntityFlags::efMovedId);      // can set with id
+            ++fixed_pos_;
+        }
+        else if (cm.position > 8000) {
+            cm.position = 8000;
+            e.setFlags(EntityFlags::efMovedMask());     // or with mask
+            ++fixed_pos_;
+        }
+
+    }
+
+    u32 fixed_pos_;
+};
+
 
 
 typedef grynca::TypesPack<Orc, Rock> EntityTypes;

@@ -1,10 +1,21 @@
 cmake_minimum_required(VERSION 3.2)
 project(sysent)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++0x -Wno-invalid-offsetof" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -ffast-math -Wall -Werror" )
+
+IF (CMAKE_BUILD_TYPE STREQUAL "Release")
+    #disable profiling
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNPROFILE" )
+ENDIF()
+
+IF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    IF (WIN32)
+        # for profiling
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -gdwarf-2" )
+    ENDIF()
+ENDIF()
+
 IF (WIN32)
-    # for profiling
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-omit-frame-pointer -gdwarf-2" )
     include_directories(c:/DEV/gamedev/base/src/)
 ELSE()
     include_directories(/home/grynca/DEV/gamedev/base/src)
@@ -18,9 +29,11 @@ set(SOURCE_FILES
         include/sysent/Entity.inl
         include/sysent/EntityManager.h
         include/sysent/EntityManager.inl
-        include/sysent/SystemBase.h
-        include/sysent/SystemBase.inl
-        include/sysent/Mask.h
+        include/sysent/System.h
+        include/sysent/System.inl
+        include/sysent/SystemFlagged.h
+        include/sysent/SystemFlagged.inl
+        include/sysent/Masks.h
         include/sysent.h
 
         test/main.cpp

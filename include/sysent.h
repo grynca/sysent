@@ -1,8 +1,9 @@
 #ifndef TTEST_SYSENT_H
 #define TTEST_SYSENT_H
 
-#include "sysent/Mask.h"
+#include "sysent/Masks.h"
 #include "sysent/Entity.h"
 #include "sysent/EntityManager.h"
-#include "sysent/SystemBase.h"
+#include "sysent/System.h"
+#include "sysent/SystemFlagged.h"
 #endif //TTEST_SYSENT_H

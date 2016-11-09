@@ -1,89 +1,74 @@
 #include "EntityManager.h"
 #include "Entity.h"
-#include "SystemBase.h"
+#include "SystemFlagged.h"
 #include <types/Type.h>
-#include <iomanip>
 
 namespace grynca {
 
     inline EntityManager::~EntityManager() {
-        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
-            SystemsPack& sp = systems_packs_[i];
-            for (uint32_t j = 0; j < sp.size(); ++j) {
-                delete sp[j];
+        for (u32 i=0; i<pipelines_.size(); ++i) {
+            SystemsPipeline& sp = pipelines_[i];
+            for (u32 j = 0; j < sp.systems_.size(); ++j) {
+                delete sp.systems_[j];
             }
         }
     }
 
     inline EntityManager::EntityManager()
-     : flags_count_(0), flag_bits_(MAX_FLAGS)
     {
     }
 
     template <typename EntityTypes>
-    inline void EntityManager::init(uint32_t initial_reserve, uint32_t system_packs_count) {
+    inline void EntityManager::init(u32 initial_reserve, u32 system_pipelines_count) {
         EntityTypes::template callOnTypes<EntityTypesInitializer_>(*this, initial_reserve);
-        systems_packs_.resize(system_packs_count);
+        pipelines_.resize(system_pipelines_count);
+        for (u32 i=0; i<system_pipelines_count; ++i) {
+            pipelines_[i].needs_flag_.resize(FlagsMask::size());
+            pipelines_[i].needs_role_.resize(RolesMask::size());
+        }
 
 #ifdef DEBUG_BUILD
         std::cout << "Component types:" << std::endl;
         std::cout << InternalTypes<EntityTypeInfo>::getDebugString(" ");
 
         std::cout << "Entity types:" << std::endl;
-        for (uint32_t i=0; i<entity_types_.size(); ++i) {
-            uint32_t internal_type_id = *std::find(type_ids_map_.begin(), type_ids_map_.end(), i);
+        for (u32 i=0; i<entity_types_.size(); ++i) {
+            u32 internal_type_id = std::find(type_ids_map_.begin(), type_ids_map_.end(), i) - type_ids_map_.begin();
             const TypeInfo& ti = InternalTypes<EntityManager>::getInfo(internal_type_id);
-            EntityTypeInfo& eti = entity_types_[i].ent_type_info_;
-            std::cout << (" " +std::to_string(i) + "[" + std::to_string(internal_type_id) + "]: " + ti.getTypename()) << std::endl
-                      << "  roles:" << eti.getComponentRoles()
+            EntityTypeInfo& eti = entity_types_[i].info_;
+            std::cout << (" " +string_utils::toString(i) + "[" + string_utils::toString(internal_type_id) + "]: " + ti.getTypename()) << std::endl
+                      << "  roles:" << eti.getInitialComponentRoles()
                       << ", size: " << eti.getComponentsSize()
                       << ", components: ";
-            fast_vector<uint32_t> cc = eti.getContainedComponents();
-            for (uint32_t j=0; j<cc.size(); ++j) {
+            fast_vector<u32> cc = eti.getContainedComponents();
+            for (u32 j=0; j<cc.size(); ++j) {
                 if (j != 0)
                     std::cout << ", ";
-                std::cout << std::to_string(cc[j]);
+                std::cout << string_utils::toString(cc[j]);
             }
             std::cout << std::endl;
         }
 #endif
     }
 
-    inline Entity EntityManager::createEntity(uint16_t entity_type_id) {
+    inline Entity EntityManager::newEntity(u16 entity_type_id) {
         EntityTypeCtx& etctx = entity_types_[entity_type_id];
 
-        uint8_t* comps_data;
         EntityIndex id;
-        id.index_ = etctx.components_data_.add(comps_data);
-        id.setEntityTypeId_(entity_type_id);
+        id.accInnerIndex() = etctx.comps_pool.addAndConstruct();
+        id.setEntityTypeId(entity_type_id);
 
         Entity new_ent;
-        new_ent.comps_data_ = comps_data;
         new_ent.index_ = id;
         new_ent.mgr_ = this;
-        etctx.ent_type_info_.callCompsDefConstructor(new_ent);
-        new_ent.getBase_().roles_ = etctx.ent_type_info_.getComponentRoles();
+        new_ent.getBase_().roles_ = etctx.info_.getInitialComponentRoles();
         return new_ent;
     }
 
-    inline void EntityManager::addToSystems(Entity& ent) {
-        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
-            for (uint32_t j=0; j<systems_packs_[i].size(); ++j) {
-                SystemBase* s = systems_packs_[i][j];
-                if (!s->careAboutEntity(ent))
-                    continue;
-                addEntityToSystemInternal_(ent, s);
-            }
-        }
-    }
-
     inline Entity EntityManager::getEntity(EntityIndex id) {
-        EntityTypeCtx& etctx = entity_types_[id.getEntityTypeId()];
-
         Entity ent;
         ent.mgr_ = this;
         ent.index_ = id;
-        ent.comps_data_ = etctx.components_data_.get(id.index_);
         return ent;
     }
 
@@ -94,136 +79,176 @@ namespace grynca {
 
         EntityTypeCtx& etctx = entity_types_[id.getEntityTypeId()];
 
-        if (!etctx.components_data_.isValidIndex(id.index_))
+        if (!etctx.comps_pool.isValidIndex(id.accInnerIndex()))
             return ent;
 
         ent.mgr_ = this;
         ent.index_ = id;
-        ent.comps_data_ = etctx.components_data_.get(id.index_);
         return ent;
     }
 
-    inline EntityTypeInfo& EntityManager::getEntityTypeInfo(uint16_t entity_type_id) {
-        return entity_types_[entity_type_id].ent_type_info_;
+    inline EntityTypeInfo& EntityManager::getEntityTypeInfo(u16 entity_type_id) {
+        return entity_types_[entity_type_id].info_;
+    }
+
+    inline EntityManager::EntitiesPool& EntityManager::getEntitiesPool(u16 entity_type_id) {
+        return entity_types_[entity_type_id].comps_pool;
+    }
+
+    inline void EntityManager::resolveEntityFlag(Entity& e, u32 flag_id, u32 pipeline_id) {
+        FlagsMask& next = e.accNextFlags();
+        FlagsMask& curr = e.accFlags();
+        curr[flag_id] = next[flag_id];
+        if (!next[flag_id])
+            return;
+        next[flag_id] = 0;
+        for (u32 i=0; i<pipelines_[pipeline_id].needs_flag_[flag_id].size(); ++i) {
+            u32 sys_id = pipelines_[pipeline_id].needs_flag_[flag_id][i];
+            SystemFlagged* slf = (SystemFlagged*)(pipelines_[pipeline_id].systems_[sys_id]);
+            slf->addFlaggedEntity_(e, curr);
+        }
     }
 
     template <typename SystemType>
-    inline SystemType& EntityManager::addSystem(uint32_t systems_pack_id) {
-        ASSERT(systems_pack_id < systems_packs_.size());
+    inline SystemType& EntityManager::addSystem(u32 pipeline_id) {
+        ASSERT(pipeline_id < pipelines_.size());
 
         SystemType* system = new SystemType();
-        system->template init_<SystemType>(*this, entity_types_.size(), flags_count_);
-        systems_packs_[systems_pack_id].push_back(system);
+        System* sb = (System*)system;
+        sb->init_(*this, (u16)entity_types_.size(), pipeline_id);
+        u32 sys_id = pipelines_[pipeline_id].systems_.size();
+        pipelines_[pipeline_id].systems_.push_back(sb);
 
-        FlagsMask fm = system->getTrackedFlags();
-        for (uint32_t fid=0; fid<MAX_FLAGS; ++fid) {
-            if (fm[fid]) {
-                flag_bits_[fid] |= (1<<system->getFlagPosition_(fid));
+        const RolesMask& nr = sb->getNeededRoles();
+        for (u32 i=0; i<RolesMask::size(); ++i) {
+            if (nr[i]) {
+                pipelines_[pipeline_id].needs_role_[i].push_back(sys_id);
             }
+        }
+
+        if (sb->getSubtype() == System::stLoopFlagged) {
+            const FlagsMask& nf = ((SystemFlagged*)sb)->getNeededFlags();
+            for (u32 i=0; i< FlagsMask::size(); ++i) {
+                if (nf[i]) {
+                    pipelines_[pipeline_id].needs_flag_[i].push_back(sys_id);
+                }
+            }
+            pipelines_[pipeline_id].loop_flagged_.push_back(sys_id);
+        }
+        else {
+            pipelines_[pipeline_id].loop_all_.push_back(sys_id);
         }
 
         return *system;
     }
 
-    inline SystemBase* EntityManager::getSystem(uint32_t systems_pack_id, uint32_t system_id) {
-        return systems_packs_[systems_pack_id][system_id];
+    inline System* EntityManager::getSystem(u32 pipeline_id, u32 system_id) {
+        return pipelines_[pipeline_id].systems_[system_id];
     }
 
-    inline uint32_t EntityManager::getSystemsPackSize(uint32_t systems_pack_id) {
-        return systems_packs_[systems_pack_id].size();
+    inline u32 EntityManager::getSystemsPipelineSize(u32 pipeline_id) {
+        return pipelines_[pipeline_id].systems_.size();
     }
 
-    inline void EntityManager::updateSystemsPack(uint32_t systems_pack_id, float dt) {
-        ASSERT(systems_pack_id < systems_packs_.size());
+    inline void EntityManager::updateSystemsPipeline(u32 pipeline_id, f32 dt) {
+        ASSERT(pipeline_id < pipelines_.size());
 
-        for (uint32_t i=0; i<systems_packs_[systems_pack_id].size(); ++i) {
-            // preupdate
-            // update system
-            SystemBase* s = systems_packs_[systems_pack_id][i];
-            update_ctx_.system = s;
-            s->preUpdate();
-            Entity ent;
-            ent.mgr_ = this;
-            for (uint16_t et_id=0; et_id<s->relevant_entities_.size(); ++et_id) {
-                EntityTypeCtx& etctx = entity_types_[et_id];
-                fast_vector<uint32_t>& rel_ents = s->relevant_entities_[et_id];
-                ent.index_.setEntityTypeId_(et_id);
-                update_ctx_.entity_type_id = et_id;
+        Entity ent;
+        ent.mgr_ = this;
+        for (u32 i=0; i<pipelines_[pipeline_id].systems_.size(); ++i) {
+            System* s = pipelines_[pipeline_id].systems_[i];
+            s->update_(ent, dt);
+        }
+    }
 
-                uint32_t& pos = update_ctx_.entity_pos;
-                for (pos=0; pos<rel_ents.size(); ++pos) {
-                    etctx.components_data_.getIndexForPos2(rel_ents[pos], ent.index_.index_);
-                    ent.comps_data_ = etctx.components_data_.get(ent.index_.index_);
-                    s->updateEntity(ent, dt);
-                    ent.clearTrackedFlagsForSystem_(s);
-                }
-                // handle deferred entities
-                if (!update_ctx_.defered_created_entity_positions_.empty()) {
-                    for (uint32_t j=0; j<update_ctx_.defered_created_entity_positions_.size(); ++j) {
-                        pos = update_ctx_.defered_created_entity_positions_[j];
-                        etctx.components_data_.getIndexForPos2(rel_ents[pos], ent.index_.index_);
-                        ent.comps_data_ = etctx.components_data_.get(ent.index_.index_);
-                        s->updateEntity(ent, dt);
-                        ent.clearTrackedFlagsForSystem_(s);
-                    }
-                    update_ctx_.defered_created_entity_positions_.clear();
+#ifdef PROFILE_BUILD
+    inline std::string EntityManager::getProfileString() {
+        struct UpdateTimes {
+            f32 pre_upd;
+            f32 upd;
+            f32 post_upd;
+        };
+
+        std::string rslt;
+        for (u32 pid = 0; pid<pipelines_.size(); ++pid) {
+            u32 systems_cnt = pipelines_[pid].systems_.size();
+            fast_vector<UpdateTimes> times;
+            times.resize(systems_cnt);
+            f32 all_time = 0;
+            for (u32 sid = 0; sid< systems_cnt; ++sid) {
+                times[sid].pre_upd = pipelines_[pid].systems_[sid]->getPreUpdateMeasure().calcAvgDt();
+                times[sid].upd = pipelines_[pid].systems_[sid]->getUpdateMeasure().calcAvgDt();
+                times[sid].post_upd = pipelines_[pid].systems_[sid]->getPostUpdateMeasure().calcAvgDt();
+                all_time += times[sid].pre_upd;
+                all_time += times[sid].upd;
+                all_time += times[sid].post_upd;
+            }
+            rslt += "pipeline " + string_utils::toString(pid) + ": \n";
+            for (u32 sid = 0; sid< systems_cnt; ++sid) {
+                rslt += " system " + string_utils::toString(sid)
+                        + ": pre_update: "+ string_utils::printPerc(times[sid].pre_upd/all_time)
+                        + " %, update: "+ string_utils::printPerc(times[sid].upd/all_time)
+                        + " %, post_update: " + string_utils::printPerc(times[sid].post_upd/all_time) + " %. \n";
+            }
+        }
+        return rslt;
+    }
+#endif
+
+    inline void EntityManager::beforeEntityRoleAdded_(Entity& ent, u32 role_id) {
+        for (u32 i=0; i<pipelines_.size(); ++i) {
+            SystemsPipeline& pl = pipelines_[i];
+            for (u32 j=0; j<pl.needs_role_[role_id].size(); ++j) {
+                u32 sys_id = pl.needs_role_[role_id][j];
+                System* s = pl.systems_[sys_id];
+                if (s->careAboutEntity(ent)) {
+                    s->addEntity_(ent);
                 }
             }
-            update_ctx_.entity_pos = uint32_t(-1);
-            s->postUpdate();
-
-            update_ctx_.system = NULL;
         }
     }
 
-    inline void EntityManager::addEntityToSystemInternal_(Entity& ent, SystemBase* system) {
-        uint32_t pos = system->addRelevantEntity(ent);
-        if (system == update_ctx_.system
-            && update_ctx_.entity_type_id == ent.getIndex().getEntityTypeId()
-            && pos <= update_ctx_.entity_pos)
-        {
-            ++update_ctx_.entity_pos;
-            // make sure this entity gets updated by this system
-            // even when inserted before current update cursor
-            update_ctx_.defered_created_entity_positions_.push_back(pos);
+    inline void EntityManager::beforeEntityRoleRemoved_(Entity& ent, u32 role_id) {
+        for (u32 i=0; i<pipelines_.size(); ++i) {
+            SystemsPipeline& pl = pipelines_[i];
+            for (u32 j=0; j<pl.needs_role_[role_id].size(); ++j) {
+                u32 sys_id = pl.needs_role_[role_id][j];
+                System* s = pl.systems_[sys_id];
+                if (s->careAboutEntity(ent)) {
+                    s->removeEntity_(ent);
+                }
+            }
         }
     }
 
-    inline void EntityManager::removeEntityFromSystems_(Entity& ent) {
-        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
-            for (uint32_t j=0; j<systems_packs_[i].size(); ++j) {
-                SystemBase* s = systems_packs_[i][j];
+    inline void EntityManager::beforeEntityKilled_(Entity& ent) {
+        for (u32 i=0; i<pipelines_.size(); ++i) {
+            for (u32 j=0; j<pipelines_[i].systems_.size(); ++j) {
+                System* s = pipelines_[i].systems_[j];
                 if (!s->careAboutEntity(ent))
                     continue;
-                removeEntityFromSystemInternal_(ent, s);
+                s->removeEntity_(ent);
             }
         }
     }
 
-    inline void EntityManager::removeEntityFromSystemInternal_(Entity& ent, SystemBase* system) {
-        uint32_t pos = system->removeRelevantEntity(ent);
-        if (system == update_ctx_.system
-            && update_ctx_.entity_type_id == ent.getIndex().getEntityTypeId()
-            && pos <= update_ctx_.entity_pos)
-        {
-            --update_ctx_.entity_pos;
+    inline void EntityManager::afterEntityCreated_(Entity& ent) {
+        for (u32 i=0; i<pipelines_.size(); ++i) {
+            // add only to loop all systems
+            for (u32 j=0; j<pipelines_[i].systems_.size(); ++j) {
+                System* s = pipelines_[i].systems_[j];
+                if (!s->careAboutEntity(ent))
+                    continue;
+                s->addEntity_(ent);
+            }
         }
     }
 
-    inline void EntityManager::beforeEntityRolesChanged_(Entity& ent, const RolesMask& new_roles) {
-        for (uint32_t i=0; i<systems_packs_.size(); ++i) {
-            for (uint32_t j = 0; j < systems_packs_[i].size(); ++j) {
-                SystemBase *s = systems_packs_[i][j];
-                bool did_care = s->careAboutEntity(ent);
-                bool will_care = (new_roles&s->needed_roles_) == s->needed_roles_;
-                if (did_care && !will_care) {
-                    removeEntityFromSystemInternal_(ent, s);
-                }
-                else if (!did_care && will_care) {
-                    addEntityToSystemInternal_(ent, s);
-                }
-            }
-        }
+    template <typename EntType>
+    inline void EntityManager::EntityTypeCtx::init(u32 initial_reserve) {
+        info_.init<EntType>();
+        comps_pool.initComponents<typename EntType::ComponentTypes>();
+        comps_pool.reserve(initial_reserve);
     }
 
 }
