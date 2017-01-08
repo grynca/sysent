@@ -15,8 +15,8 @@ DEFINE_ENUM(EntityFlags,
             efTeleported
 );
 
-#define ROLES_CNT EntityFlags::end
-#define FLAGS_CNT EntityRoles::end
+#define MAX_ROLES EntityRoles::end
+#define MAX_FLAGS EntityFlags::end
 
 #include "sysent.h"
 
@@ -45,25 +45,28 @@ public:
 
     TeleportSystem() : teleported_(0) {}
 
+    virtual FlagsMask TrackedFlags() override {
+        return EntityFlags::efMovedMask();
+    }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erTeleportableMask();
     }
 
-    virtual void preUpdate() override {
+    virtual void preUpdate(f32 dt) override {
         teleported_ = 0;
     }
 
     virtual void updateEntity(Entity& e, f32 dt) override {
-        if (!e.getFlags()[EntityFlags::efMovedId]) {
+        if (!e.getFlag(this, EntityFlags::efMovedId)) {
             if (rand()%2) {
                 teleportEntity(e);
             }
         }
-        resolveEntityFlag(e, EntityFlags::efTeleportedId);
     }
 
     void teleportEntity(Entity& e) {
-        e.setFlags(EntityFlags::efTeleportedMask());
+        e.setFlag(EntityFlags::efTeleportedId);
         CMovable& cm = e.getComponent<CMovable>();
         cm.position = rand()%10000;
         ++teleported_;
@@ -78,23 +81,26 @@ class MovementSystem : public System
 public:
     MovementSystem() : moved_(0) {}
 
+    virtual FlagsMask TrackedFlags() override {
+        return EntityFlags::efTeleportedMask();
+    }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erMovableMask();
     }
 
-    virtual void preUpdate() override {
+    virtual void preUpdate(f32 dt) override {
         moved_ = 0;
     }
 
     virtual void updateEntity(Entity& e, f32 dt) override {
-        if (!e.getFlags()[EntityFlags::efTeleportedId]) {
+        if (!e.getFlag(this, EntityFlags::efTeleportedId)) {
             moveEntity(e, dt);
         }
-        resolveEntityFlag(e, EntityFlags::efMovedId);
     }
 
     void moveEntity(Entity& e, f32 dt) {
-        e.setFlags(EntityFlags::efMovedMask());
+        e.setFlag(EntityFlags::efMovedId);
         CMovable& cm =e.getComponent<CMovable>();
         cm.position += cm.speed * dt;
         ++moved_;
@@ -103,20 +109,21 @@ public:
     u32 moved_;
 };
 
-class CheckBoundsSystem : public SystemFlagged
+class CheckBoundsSystem : public FlaggedSystem
 {
 public:
-    CheckBoundsSystem() : fixed_pos_(0) {}
+    CheckBoundsSystem() : fixed_pos_(0) {
+    }
 
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erMovableMask();
     }
 
-    virtual FlagsMask NeededFlagsAny() override {
+    virtual FlagsMask NeededFlags() override {
         return EntityFlags::efMovedMask() | EntityFlags::efTeleportedMask();
     }
 
-    virtual void preUpdate() override {
+    virtual void preUpdate(f32 dt) override {
         fixed_pos_ = 0;
     }
 
@@ -124,12 +131,12 @@ public:
         CMovable& cm = e.getComponent<CMovable>();
         if (cm.position < 2000) {
             cm.position = 2000;
-            e.setFlag(EntityFlags::efMovedId);      // can set with id
+            e.setFlag(EntityFlags::efMovedId);
             ++fixed_pos_;
         }
         else if (cm.position > 8000) {
             cm.position = 8000;
-            e.setFlags(EntityFlags::efMovedMask());     // or with mask
+            e.setFlag(EntityFlags::efMovedId);
             ++fixed_pos_;
         }
 

@@ -16,9 +16,9 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 ENDIF()
 
 IF (WIN32)
-    include_directories(c:/DEV/gamedev/base/src/)
+    include_directories(c:/DEV/gamedev/base/include/)
 ELSE()
-    include_directories(/home/grynca/DEV/gamedev/base/src)
+    include_directories(/home/grynca/DEV/gamedev/base/include)
 ENDIF()
 
 include_directories(include/)
@@ -31,8 +31,8 @@ set(SOURCE_FILES
         include/sysent/EntityManager.inl
         include/sysent/System.h
         include/sysent/System.inl
-        include/sysent/SystemFlagged.h
-        include/sysent/SystemFlagged.inl
+        include/sysent/FlaggedSystem.h
+        include/sysent/FlaggedSystem.inl
         include/sysent/Masks.h
         include/sysent.h
 
@@ -41,5 +41,5 @@ set(SOURCE_FILES
         include/sysent/EntityIndex.h
         include/sysent/EntityTypeInfo.h
         include/sysent/EntityTypeInfo.inl
-        )
+        include/sysent/sysent_config.h)
 add_executable(sysent ${SOURCE_FILES})

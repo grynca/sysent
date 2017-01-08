@@ -6,9 +6,6 @@
 #include "EntityIndex.h"
 #include <bitset>
 
-#define MAX_ENTITY_COMPS 32
-#define MAX_COMPONENT_SIZE 64       // must fit to cache line
-
 namespace grynca {
 
     // fw
@@ -23,11 +20,8 @@ namespace grynca {
         friend class Entity;
         friend class EntityManager;
 
-        RolesMask roles_;
-
-        // Double buffering for flags
-        FlagsMask flags_;           // resolved flags
-        FlagsMask next_flags_;      // not yet resolved flags
+        u32 roles_mask_id_;
+        FlagsMaskLong flags_;
     };
 
 
@@ -41,6 +35,9 @@ namespace grynca {
         template <typename ComponentType>
         const ComponentType& getComponent()const;
 
+        template <typename ComponentType>
+        typename ComponentType::Setter getComponentSetter();
+
         const EntityTypeInfo& getTypeInfo()const;
 
         void kill();
@@ -50,28 +47,28 @@ namespace grynca {
         EntityManager& getManager()const { return *mgr_; }
 
         // Roles
-        RolesMask& accRoles();
-        const RolesMask& getRoles();
+        const RolesMask& getRoles()const;
         void addRole(u32 role_id);
         void removeRole(u32 role_id);
 
         // Flags:
-        FlagsMask& accFlags();
-        const FlagsMask& getFlags()const;
-        void setFlag(u32 flag_id);
-        void setFlags(const FlagsMask& fm);
-        FlagsMask& accNextFlags();
-        const FlagsMask& getNextFlags()const;
+        const FlagsMaskLong& getFlagsMask();
+        void setFlag(u32 flag_id);      //  set for all systems that are tracking it
+        void setFlag(u32 flag_id, u32 from_system_id);      // sets to only systems with larger system_id
+        void clearFlag(u32 flag_id);    //  cleared for all systems that are tracking it
+        bool getFlag(u32 flag_id);      // if this flag is set for any system
+        bool getFlag(System* system, u32 flag_id);  // getting flags per-system
 
-        bool isValid() { return index_ != EntityIndex::Invalid(); }
+        bool isValid()const { return index_ != EntityIndex::Invalid(); }
     protected:
         friend class EntityTypeInfo;
         friend class EntityManager;
         friend class System;
-        friend class SystemFlagged;
+        friend class FlaggedSystem;
 
         CBase& getBase_();
         const CBase& getBase_()const;
+        void clearTrackedFlagsForSystem_(System* system);
 
         template <typename ComponentTypes>
         static RolesMask getInitialComponentsRoles_();

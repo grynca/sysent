@@ -3,8 +3,8 @@
 
 namespace grynca {
 
-    inline System::System(Subtype st)
-     : manager_(NULL), subtype_(st), pipeline_id_(InvalidId()), u_et_id_((u16)InvalidId()), u_pos_(InvalidId())
+    inline System::System()
+     : manager_(NULL), pipeline_id_(InvalidId()), is_flagged_system_(false), u_et_id_((u16)InvalidId()), u_pos_(InvalidId())
     {
     }
 
@@ -17,11 +17,11 @@ namespace grynca {
     }
 
     inline bool System::careAboutEntity(Entity& e) {
-        return (e.getRoles()&needed_roles_) == needed_roles_;
+        return areRolesCompatible(e.getRoles());
     }
 
-    inline void System::resolveEntityFlag(Entity& e, u32 flag_id)const {
-        manager_->resolveEntityFlag(e, flag_id, pipeline_id_);
+    inline bool System::areRolesCompatible(const RolesMask& rm) {
+        return (rm&needed_roles_) == needed_roles_;
     }
 
     inline bool System::isEntAtPos_(Entities& ents, Entity& ent, u32 pos) {
@@ -34,15 +34,15 @@ namespace grynca {
 
     inline void System::addEntity_(Entity& e) {
         ASSERT(careAboutEntity(e));
-        if (getSubtype() == stLoopAll) {
+        if (isFlaggedSystem()) {
+            afterAddedEntity(e);
+        }
+        else {
             EntityIndex entity_id = e.getIndex();
             if (entity_id.getEntityTypeId() == u_et_id_)
                 deferred_add_.push_back(e);
             else
                 innerAdd_(e);
-        }
-        else {
-            afterAddedEntity(e);
         }
     }
 
@@ -56,9 +56,15 @@ namespace grynca {
         }
     }
 
+    inline u32 System::getFlagPosition_(u32 flag_id) {
+        ASSERT_M(flag_id <= FlagsMask::size() && flag_positions_[flag_id]!=InvalidId(),
+                "This flag is not tracked by this system");
+        return flag_positions_[flag_id];
+    }
+
     inline void System::update_(Entity& e, f32 dt) {
         PROFILE_MEASURE_FROM(pre_update_m_);
-        preUpdate();
+        preUpdate(dt);
         PROFILE_MEASURE_TO(pre_update_m_);
 
         PROFILE_MEASURE_FROM(update_m_);
@@ -70,6 +76,7 @@ namespace grynca {
             for (u_pos_ = 0; u_pos_<rel_ents.size(); ++u_pos_) {
                 etctx.comps_pool.getIndexForPos2(rel_ents[u_pos_], e.index_.accInnerIndex());
                 updateEntity(e, dt);
+                e.clearTrackedFlagsForSystem_(this);
             }
 
             if (!deferred_add_.empty()) {
@@ -89,15 +96,29 @@ namespace grynca {
         PROFILE_MEASURE_TO(update_m_);
 
         PROFILE_MEASURE_FROM(post_update_m_);
-        postUpdate();
+        postUpdate(dt);
         PROFILE_MEASURE_TO(post_update_m_);
     }
 
-    inline void System::init_(EntityManager& mgr, u16 entity_types_count, u32 pipeline_id) {
+    inline void System::init_(EntityManager& mgr, u16 entity_types_count, u32 pipeline_id, u32 system_id, u32& flags_offset_io) {
         manager_ = &mgr;
         pipeline_id_ = pipeline_id;
+        system_id_ = system_id;
         needed_roles_ = NeededRoles();
+        tracked_flags_ = TrackedFlags();
         relevant_entities_.resize(entity_types_count);
+
+        for (u32 fid=0; fid<FlagsMask::size(); ++fid) {
+            if (tracked_flags_[fid]) {
+                ASSERT_M(flags_offset_io < FlagsMaskLong::size(), "Not enough space in flags mask");
+                flag_positions_[fid] = flags_offset_io;
+                flag_positions_mask_ |= (1 << flags_offset_io);
+                flags_offset_io++;
+            } else {
+                flag_positions_[fid] = InvalidId();
+            }
+        }
+
         init();
     }
 

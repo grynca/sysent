@@ -1,12 +1,12 @@
 #include "EntityManager.h"
 #include "Entity.h"
-#include "SystemFlagged.h"
+#include "FlaggedSystem.h"
 #include <types/Type.h>
 
 namespace grynca {
 
     inline EntityManager::~EntityManager() {
-        for (u32 i=0; i<pipelines_.size(); ++i) {
+        for (u32 i=0; i<SYSENT_PIPELINES_CNT; ++i) {
             SystemsPipeline& sp = pipelines_[i];
             for (u32 j = 0; j < sp.systems_.size(); ++j) {
                 delete sp.systems_[j];
@@ -15,17 +15,13 @@ namespace grynca {
     }
 
     inline EntityManager::EntityManager()
+     : flags_count_(0)
     {
     }
 
     template <typename EntityTypes>
-    inline void EntityManager::init(u32 initial_reserve, u32 system_pipelines_count) {
+    inline void EntityManager::init(u32 initial_reserve) {
         EntityTypes::template callOnTypes<EntityTypesInitializer_>(*this, initial_reserve);
-        pipelines_.resize(system_pipelines_count);
-        for (u32 i=0; i<system_pipelines_count; ++i) {
-            pipelines_[i].needs_flag_.resize(FlagsMask::size());
-            pipelines_[i].needs_role_.resize(RolesMask::size());
-        }
 
 #ifdef DEBUG_BUILD
         std::cout << "Component types:" << std::endl;
@@ -61,7 +57,7 @@ namespace grynca {
         Entity new_ent;
         new_ent.index_ = id;
         new_ent.mgr_ = this;
-        new_ent.getBase_().roles_ = etctx.info_.getInitialComponentRoles();
+        new_ent.getBase_().roles_mask_id_ = role_masks_.getId(etctx.info_.getInitialComponentRoles(), pipelines_);
         return new_ent;
     }
 
@@ -95,63 +91,58 @@ namespace grynca {
         return entity_types_[entity_type_id].comps_pool;
     }
 
-    inline void EntityManager::resolveEntityFlag(Entity& e, u32 flag_id, u32 pipeline_id) {
-        FlagsMask& next = e.accNextFlags();
-        FlagsMask& curr = e.accFlags();
-        curr[flag_id] = next[flag_id];
-        if (!next[flag_id])
-            return;
-        next[flag_id] = 0;
-        for (u32 i=0; i<pipelines_[pipeline_id].needs_flag_[flag_id].size(); ++i) {
-            u32 sys_id = pipelines_[pipeline_id].needs_flag_[flag_id][i];
-            SystemFlagged* slf = (SystemFlagged*)(pipelines_[pipeline_id].systems_[sys_id]);
-            slf->addFlaggedEntity_(e, curr);
-        }
-    }
-
     template <typename SystemType>
     inline SystemType& EntityManager::addSystem(u32 pipeline_id) {
-        ASSERT(pipeline_id < pipelines_.size());
+        ASSERT(pipeline_id < SYSENT_PIPELINES_CNT);
 
         SystemType* system = new SystemType();
-        System* sb = (System*)system;
-        sb->init_(*this, (u16)entity_types_.size(), pipeline_id);
-        u32 sys_id = pipelines_[pipeline_id].systems_.size();
-        pipelines_[pipeline_id].systems_.push_back(sb);
+        System* s = (System*)system;
+        u32 system_id = pipelines_[pipeline_id].systems_.size();
+        pipelines_[pipeline_id].systems_.push_back(s);
 
-        const RolesMask& nr = sb->getNeededRoles();
-        for (u32 i=0; i<RolesMask::size(); ++i) {
-            if (nr[i]) {
-                pipelines_[pipeline_id].needs_role_[i].push_back(sys_id);
+        s->init_(*this, (u16)entity_types_.size(), pipeline_id, system_id, flags_count_);
+
+        FlagsMask tf = s->getTrackedFlags();
+        if (s->isFlaggedSystem()) {
+            tf |= ((FlaggedSystem*)s)->getNeededFlags();
+        }
+        for (uint32_t fid=0; fid<FlagsMask::size(); ++fid) {
+            if (tf[fid]) {
+                tracked_flag_bits_[fid] |= (1<<s->getFlagPosition_(fid));
             }
         }
 
-        if (sb->getSubtype() == System::stLoopFlagged) {
-            const FlagsMask& nf = ((SystemFlagged*)sb)->getNeededFlags();
-            for (u32 i=0; i< FlagsMask::size(); ++i) {
-                if (nf[i]) {
-                    pipelines_[pipeline_id].needs_flag_[i].push_back(sys_id);
-                }
-            }
-            pipelines_[pipeline_id].loop_flagged_.push_back(sys_id);
-        }
-        else {
-            pipelines_[pipeline_id].loop_all_.push_back(sys_id);
+        for (u32 i=0; i<role_masks_.getInfosCount(); ++i) {
+            RoleMasks::RolesMaskInfo& rmi = role_masks_.getInfo(i);
+            rmi.addForSystem(s);
         }
 
         return *system;
     }
 
+    template <typename SystemType>
+    SystemType* EntityManager::findSystemByType(u32 pipeline_id) {
+        for (u32 i=0; i< pipelines_[pipeline_id].systems_.size(); ++i) {
+            SystemType* st = dynamic_cast<SystemType*>(pipelines_[pipeline_id].systems_[i]);
+            if (st) {
+                return st;
+            }
+        }
+        return NULL;
+    }
+
     inline System* EntityManager::getSystem(u32 pipeline_id, u32 system_id) {
+        ASSERT(pipeline_id < SYSENT_PIPELINES_CNT);
         return pipelines_[pipeline_id].systems_[system_id];
     }
 
     inline u32 EntityManager::getSystemsPipelineSize(u32 pipeline_id) {
+        ASSERT(pipeline_id < SYSENT_PIPELINES_CNT);
         return pipelines_[pipeline_id].systems_.size();
     }
 
     inline void EntityManager::updateSystemsPipeline(u32 pipeline_id, f32 dt) {
-        ASSERT(pipeline_id < pipelines_.size());
+        ASSERT(pipeline_id < SYSENT_PIPELINES_CNT);
 
         Entity ent;
         ent.mgr_ = this;
@@ -170,7 +161,7 @@ namespace grynca {
         };
 
         std::string rslt;
-        for (u32 pid = 0; pid<pipelines_.size(); ++pid) {
+        for (u32 pid = 0; pid<SYSENT_PIPELINES_CNT; ++pid) {
             u32 systems_cnt = pipelines_[pid].systems_.size();
             fast_vector<UpdateTimes> times;
             times.resize(systems_cnt);
@@ -195,52 +186,76 @@ namespace grynca {
     }
 #endif
 
-    inline void EntityManager::beforeEntityRoleAdded_(Entity& ent, u32 role_id) {
-        for (u32 i=0; i<pipelines_.size(); ++i) {
-            SystemsPipeline& pl = pipelines_[i];
-            for (u32 j=0; j<pl.needs_role_[role_id].size(); ++j) {
-                u32 sys_id = pl.needs_role_[role_id][j];
-                System* s = pl.systems_[sys_id];
-                if (s->careAboutEntity(ent)) {
-                    s->addEntity_(ent);
+    inline void EntityManager::RoleMasks::RolesMaskInfo::addForSystem(System* s) {
+        if (!s->areRolesCompatible(mask_))
+            return;
+
+        caring_systems_.push_back(s);
+        if (s->isFlaggedSystem()) {
+            FlaggedSystem* fs = (FlaggedSystem*)s;
+            const FlagsMask& nf = fs->getNeededFlags();
+            for (u32 fid=0; fid<FlagsMask::size(); ++fid) {
+                if (nf[fid]) {
+                    needs_flag_[fid].push_back(fs);
                 }
             }
+        }
+
+        const RolesMask& nr = s->getNeededRoles();
+        for (u32 rid=0; rid<RolesMask::size(); ++rid) {
+            if (nr[rid]) {
+                needs_role_[rid].push_back(s);
+            }
+        }
+    }
+
+    inline u32 EntityManager::RoleMasks::getId(const RolesMask& mask, SystemsPipeline* pipelines) {
+        u32 info_id = 0;
+        for (; info_id<rm_infos_.size(); ++info_id) {
+            if (rm_infos_[info_id].mask_ == mask)
+                break;
+        }
+
+        bool found = info_id!=rm_infos_.size();
+        if (!found) {
+            rm_infos_.emplace_back();
+            RolesMaskInfo& rmi = rm_infos_.back();
+            rmi.mask_ = mask;
+            for (u32 i=0; i<SYSENT_PIPELINES_CNT; ++i) {
+                for (u32 j=0; j<pipelines[i].systems_.size(); ++j) {
+                    System* s = pipelines[i].systems_[j];
+                    rmi.addForSystem(s);
+                }
+            }
+        }
+        return info_id;
+    }
+
+    inline void EntityManager::afterEntityRoleAdded_(Entity& ent, u32 role_id) {
+        RoleMasks::RolesMaskInfo& rmi = role_masks_.getInfo(ent.getBase_().roles_mask_id_);
+        for (u32 j=0; j<rmi.needs_role_[role_id].size(); ++j) {
+            rmi.needs_role_[role_id][j]->addEntity_(ent);
         }
     }
 
     inline void EntityManager::beforeEntityRoleRemoved_(Entity& ent, u32 role_id) {
-        for (u32 i=0; i<pipelines_.size(); ++i) {
-            SystemsPipeline& pl = pipelines_[i];
-            for (u32 j=0; j<pl.needs_role_[role_id].size(); ++j) {
-                u32 sys_id = pl.needs_role_[role_id][j];
-                System* s = pl.systems_[sys_id];
-                if (s->careAboutEntity(ent)) {
-                    s->removeEntity_(ent);
-                }
-            }
+        RoleMasks::RolesMaskInfo& rmi = role_masks_.getInfo(ent.getBase_().roles_mask_id_);
+        for (u32 j=0; j<rmi.needs_role_[role_id].size(); ++j) {
+            rmi.needs_role_[role_id][j]->removeEntity_(ent);
         }
     }
 
     inline void EntityManager::beforeEntityKilled_(Entity& ent) {
-        for (u32 i=0; i<pipelines_.size(); ++i) {
-            for (u32 j=0; j<pipelines_[i].systems_.size(); ++j) {
-                System* s = pipelines_[i].systems_[j];
-                if (!s->careAboutEntity(ent))
-                    continue;
-                s->removeEntity_(ent);
-            }
+        RoleMasks::RolesMaskInfo& rmi = role_masks_.getInfo(ent.getBase_().roles_mask_id_);
+        for (u32 i=0; i<rmi.caring_systems_.size(); ++i) {
+            rmi.caring_systems_[i]->removeEntity_(ent);
         }
     }
 
     inline void EntityManager::afterEntityCreated_(Entity& ent) {
-        for (u32 i=0; i<pipelines_.size(); ++i) {
-            // add only to loop all systems
-            for (u32 j=0; j<pipelines_[i].systems_.size(); ++j) {
-                System* s = pipelines_[i].systems_[j];
-                if (!s->careAboutEntity(ent))
-                    continue;
-                s->addEntity_(ent);
-            }
+        RoleMasks::RolesMaskInfo& rmi = role_masks_.getInfo(ent.getBase_().roles_mask_id_);
+        for (u32 i=0; i<rmi.caring_systems_.size(); ++i) {
+            rmi.caring_systems_[i]->addEntity_(ent);
         }
     }
 

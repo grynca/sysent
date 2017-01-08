@@ -3,11 +3,11 @@
 
 #include "types/Mask.h"
 
-// MAX_ROLES & MAX_FLAGS must be defined before including
-
 namespace grynca {
-    typedef Mask<ROLES_CNT> RolesMask;
-    typedef Mask<FLAGS_CNT> FlagsMask;
+    typedef Mask<SYSENT_MAX_ROLES> RolesMask;
+    typedef Mask<SYSENT_MAX_FLAGS> FlagsMask;
+    typedef Mask<SYSENT_MAX_FLAGS_LONG> FlagsMaskLong;   // one flag can have multiple bits for multiple caring systems
+
 }
 
 #endif //ROLESMASK_H

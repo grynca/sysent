@@ -57,7 +57,7 @@ namespace grynca {
         ti.component_positions_[tid] = ti.components_count_;
         ++ti.components_count_;
         uint32_t comp_size = Type<T>::getSize();
-        ASSERT_M(comp_size <= MAX_COMPONENT_SIZE, "Entity component is too large");
+        ASSERT_M(comp_size <= SYSENT_MAX_COMPONENT_SIZE, "Entity component is too large");
         ti.components_size_+= comp_size;
     }
 }

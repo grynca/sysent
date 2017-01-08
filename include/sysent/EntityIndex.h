@@ -9,7 +9,12 @@ namespace grynca {
             u64 operator()(const EntityIndex& vi) const;
         };
 
-        EntityIndex() {}
+        EntityIndex()
+#ifdef DEBUG_BUILD
+         : index_(Index::Invalid())
+#endif
+        {}
+
         EntityIndex(u32 id, u16 type_id, u16 version = 0)
          : index_(type_id, version)
         {
@@ -24,6 +29,7 @@ namespace grynca {
         u32 getEntityIndex()const { return index_.getIndex(); }
         u16 getEntityTypeId()const { return index_.getUnused(); }
         u16 getVersion()const { return index_.getVersion(); }
+        bool isValid()const { return index_.isValid(); }
 
         Index& accInnerIndex() { return index_; }
         const Index& getInnerIndex()const { return index_; }

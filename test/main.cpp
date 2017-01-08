@@ -23,7 +23,7 @@ int main() {
     srand(time(0));
     u32 n = 1e6;
     EntityManager em;
-    em.init<EntityTypes>(n, 1);
+    em.init<EntityTypes>(n);
     TeleportSystem& ts = em.addSystem<TeleportSystem>(0);
     MovementSystem& ms = em.addSystem<MovementSystem>(0);
     CheckBoundsSystem& chbs = em.addSystem<CheckBoundsSystem>(0);
@@ -75,6 +75,6 @@ int main() {
     std::cout << em.getProfileString();
 #endif
 
-    KEY_TO_CONTINUE();
+    WAIT_FOR_KEY_ON_WIN();
     return 0;
 }
