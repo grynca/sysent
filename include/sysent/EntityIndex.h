@@ -1,19 +1,19 @@
 #ifndef ENTITYINDEX_H
 #define ENTITYINDEX_H
 
+#include "functions/common.h"
+
 namespace grynca {
 
     class EntityIndex {
     public:
         struct Hasher {
-            u64 operator()(const EntityIndex& vi) const;
+            u32 operator()(const EntityIndex& vi) const;
         };
 
-        EntityIndex()
-#ifdef DEBUG_BUILD
-         : index_(Index::Invalid())
-#endif
-        {}
+        EntityIndex(const EntityIndex& eid) : index_(eid.index_) {}
+
+        EntityIndex() {}
 
         EntityIndex(u32 id, u16 type_id, u16 version = 0)
          : index_(type_id, version)
@@ -55,8 +55,8 @@ namespace grynca {
         return i1.index_ != i2.index_;
     }
 
-    inline u64 EntityIndex::Hasher::operator()(const EntityIndex& vi) const {
-        return vi.index_.getUID();
+    inline u32 EntityIndex::Hasher::operator()(const EntityIndex& vi) const {
+        return calcHash64(vi.index_.getUID());
     }
 }
 

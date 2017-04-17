@@ -2,110 +2,63 @@
 #define ENTITYMANAGER_H
 
 #include "EntityIndex.h"
-#include "EntityTypeInfo.h"
-#include "types/containers/MultiPool.h"
+#include "SystemPos.h"
+#include "SystemPipeline.h"
+#define WITHOUT_IMPL
+#   include "EntityTypeCtx.h"
+#   include "RolesComposition.h"
+#undef WITHOUT_IMPL
 
 namespace grynca {
 
     // fw
-    class System;
-    class FlaggedSystem;
+    class SystemBase;
     class Entity;
 
     typedef fast_vector<Entity> EntityVec;
 
     class EntityManager {
     public:
-        typedef MultiPool<SYSENT_MAX_ENTITY_COMPS, EntityManager> EntitiesPool;
-
-    public:
         EntityManager();
         virtual ~EntityManager() ;
 
         template <typename EntityTypes>
-        void init(u32 initial_reserve);
+        void addEntityTypes(u32 initial_reserve);
+        u32 getTypesCount()const;
 
-        // must call ent.create() after initialization
-        //  ( this will add Entity to systems & call creation callbacks)
         Entity newEntity(u16 entity_type_id);
 
         Entity getEntity(EntityIndex id);           // faster does not check for validity
         Entity tryGetEntity(EntityIndex id);        // checks for validity, check e.isValid()
 
         EntityTypeInfo& getEntityTypeInfo(u16 entity_type_id);
+        u32 getEntityTypesCount()const;
         EntitiesPool& getEntitiesPool(u16 entity_type_id);
 
         // systems are looped in order in which they are added
-        template <typename SystemType>
-        SystemType& addSystem(u32 pipeline_id);
+        template <typename SystemType, typename... ConstrArgs>
+        SystemType& addSystem(u32 pipeline_id, ConstrArgs&&... args);
         // NULL when system type is not found
         template <typename SystemType>
-        SystemType* findSystemByType(u32 pipeline_id);
+        SystemType* getSystemByType(u32 pipeline_id);
 
-        System* getSystem(u32 pipeline_id, u32 system_id);
+        SystemBase* getSystem(SystemPos system_pos);
         u32 getSystemsPipelineSize(u32 pipeline_id);
 
         void updateSystemsPipeline(u32 pipeline_id, f32 dt);
-#ifdef PROFILE_BUILD
-        std::string getProfileString();
-#endif
+        ustring getTypesDebugString()const;
     private:
         friend class EntityTypesInitializer_;
         friend class Entity;
-        friend class System;
-        friend class FlaggedSystem;
-
-        struct SystemsPipeline {
-            fast_vector<System*> systems_;
-        };
-
-        class RoleMasks {
-        public:
-            struct RolesMaskInfo {
-                void addForSystem(System* s);
-
-                RolesMask mask_;
-
-                fast_vector<System*> caring_systems_;
-
-                // for each role array of systems that need it
-                fast_vector<System*> needs_role_[RolesMask::size()];
-
-                // for each flag array of systems that need it
-                fast_vector<FlaggedSystem*> needs_flag_[FlagsMask::size()];
-            };
-
-            const RolesMask& getMask(u32 id) { return rm_infos_[id].mask_; }
-            RolesMaskInfo& getInfo(u32 id) { return rm_infos_[id];}
-            u32 getInfosCount() { return rm_infos_.size(); }
-
-            u32 getId(const RolesMask& mask, SystemsPipeline* pipelines);
-        private:
-            fast_vector<RolesMaskInfo> rm_infos_;
-        };
-
-        class EntityTypeCtx {
-        public:
-            template <typename EntType>
-            void init(u32 initial_reserve);
-
-            EntityTypeInfo info_;
-            MultiPool<SYSENT_MAX_ENTITY_COMPS, EntityManager> comps_pool;
-        };
+        friend class SystemBase;
 
         struct EntityTypesInitializer_ {
             template <typename EntityTypes, typename T>
-            static void f(EntityManager& mgr, u32 initial_reserve) {
-                int pack_tid = EntityTypes::template pos<T>();
-                mgr.entity_types_.emplace_back();
-                mgr.entity_types_.back().init<T>(initial_reserve);
-
-                u32 internal_tid = Type<T, EntityManager>::getInternalTypeId();
-                if (internal_tid  >= mgr.type_ids_map_.size())
-                    mgr.type_ids_map_.resize(internal_tid+1, InvalidId());
-                mgr.type_ids_map_[internal_tid] = (u32)pack_tid;
-            }
+            static void f(EntityManager& mgr, u32 initial_reserve);
         };
+
+        template <typename EventType>
+        u32 getEventId_()const;
 
         void afterEntityRoleAdded_(Entity& ent, u32 role_id);
         void beforeEntityRoleRemoved_(Entity& ent, u32 role_id);
@@ -113,13 +66,21 @@ namespace grynca {
         void afterEntityCreated_(Entity& ent);
 
 
+        RolesCompositions roles_compositions_;
         SystemsPipeline pipelines_[SYSENT_PIPELINES_CNT];
-        RoleMasks role_masks_;
         fast_vector<EntityTypeCtx> entity_types_;
         fast_vector<u32> type_ids_map_; // maps internal type ids to type ids in entity types pack
 
-        FlagsMaskLong tracked_flag_bits_[FlagsMask::size()];  // for each flag - mask specifying which bits are tracked by systems
+        SystemsMask systems_for_role_[SYSENT_PIPELINES_CNT][RolesMask::size()];     // systems that need role
+
+        // todo: maybe different flags for each pipeline ?
+        FlagsMaskLong tracked_flag_bits_[FlagsMask::size()];  // for each flag - mask specifying which bits it occupies in FlagsMaskLong
         uint32_t flags_count_;
+        SystemBase* flag_bit_to_system_[FlagsMaskLong::size()];     // for each long flag bit system that should be notified when bit is set
+
+        // deferred add/remove of entities (called before system update)
+        fast_vector<Entity> to_create_;
+        fast_vector<Entity> to_remove_;
     };
 }
 

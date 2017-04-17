@@ -44,6 +44,9 @@ namespace grynca {
         RolesMask initial_component_roles_;
     };
 }
-
-#include "EntityTypeInfo.inl"
 #endif //ENTITYTYPEINFO_H
+
+#if !defined(ENTITYTYPEINFO_INL) && !defined(WITHOUT_IMPL)
+#define ENTITYTYPEINFO_INL
+# include "EntityTypeInfo.inl"
+#endif // ENTITYTYPEINFO_INL

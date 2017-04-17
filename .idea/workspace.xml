@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="CMakeRunConfigurationManager" shouldGenerate="true" buildAllGenerated="true">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true" buildAllGenerated="true">
     <generated>
       <config projectName="sysent" targetName="sysent" />
     </generated>
@@ -13,29 +13,33 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7eacee21-1638-47a0-bab8-21459717772d" name="Default" comment="changes for new typedefs&#10;removed warnings&#10;Mask moved to Base lib&#10;flags reworked:&#10;  - each entity has two sets of flags - double buffer fashion&#10;  - when flag is &quot;Resolved&quot;:&#10;     -- flag bit is moved from next_flags to curr_flags, and zeroed in curr_flags&#10;     -- also entity is added to FlaggedSystems, which is new type of system that&#10;          updates only flagged entities&#10;     -- its entity list is cleared each frame&#10; added simple profiling of systems&#10;">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/FlaggedSystem.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/sysent_config.h" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/build/Emscripten/main.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/build/Emscripten/main.html.mem" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/build/Emscripten/main.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/include/sysent/SystemFlagged.h" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/include/sysent/SystemFlagged.inl" afterPath="$PROJECT_DIR$/include/sysent/FlaggedSystem.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/sysent.iml" afterPath="$PROJECT_DIR$/.idea/sysent.iml" />
+    <list default="true" id="7eacee21-1638-47a0-bab8-21459717772d" name="Default" comment="each system now contains bitset of contained entities in its EntitiesList">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/EntitiesList.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/EntitiesList.inl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/EntityTypeCtx.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/RolesComposition.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/RolesComposition.inl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/SystemAll.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/SystemPipeline.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/sysent/SystemPos.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/entx_example.h" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/include/sysent/FlaggedSystem.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/include/sysent/FlaggedSystem.inl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/include/sysent/System.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test/entities.h" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/emscripten_build.bat" afterPath="$PROJECT_DIR$/emscripten_build.bat" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent.h" afterPath="$PROJECT_DIR$/include/sysent.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/Entity.h" afterPath="$PROJECT_DIR$/include/sysent/Entity.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/Entity.inl" afterPath="$PROJECT_DIR$/include/sysent/Entity.inl" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/EntityIndex.h" afterPath="$PROJECT_DIR$/include/sysent/EntityIndex.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/EntityManager.h" afterPath="$PROJECT_DIR$/include/sysent/EntityManager.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/EntityManager.inl" afterPath="$PROJECT_DIR$/include/sysent/EntityManager.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/EntityTypeInfo.inl" afterPath="$PROJECT_DIR$/include/sysent/EntityTypeInfo.inl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/EntityTypeInfo.h" afterPath="$PROJECT_DIR$/include/sysent/EntityTypeInfo.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/Masks.h" afterPath="$PROJECT_DIR$/include/sysent/Masks.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/System.h" afterPath="$PROJECT_DIR$/include/sysent/System.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/System.inl" afterPath="$PROJECT_DIR$/include/sysent/System.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/entities.h" afterPath="$PROJECT_DIR$/test/entities.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/sysent/sysent_config.h" afterPath="$PROJECT_DIR$/include/sysent/sysent_config.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/main.cpp" afterPath="$PROJECT_DIR$/test/main.cpp" />
     </list>
     <ignored path="sysent.iws" />
@@ -59,105 +63,107 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="EntityManager.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.h">
+      <file leaf-file-name="entx_example.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/entx_example.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1725">
-              <caret line="115" column="35" lean-forward="false" selection-start-line="115" selection-start-column="35" selection-end-line="115" selection-end-column="35" />
+            <state relative-caret-position="410">
+              <caret line="404" column="8" lean-forward="false" selection-start-line="404" selection-start-column="8" selection-end-line="405" selection-end-column="78" />
               <folding>
-                <element signature="e#49#73#0" expanded="true" />
+                <element signature="e#322#341#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Entity.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/Entity.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="840">
-              <caret line="56" column="16" lean-forward="false" selection-start-line="56" selection-start-column="16" selection-end-line="56" selection-end-column="16" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="System.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/System.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="900">
-              <caret line="60" column="26" lean-forward="false" selection-start-line="60" selection-start-column="26" selection-end-line="60" selection-end-column="26" />
-              <folding>
-                <marker date="1483270945325" expanded="false" signature="953:1509" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="140">
-              <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+            <state relative-caret-position="60">
+              <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="entities.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/entities.h">
+      <file leaf-file-name="TestBench.inl" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../base/include/types/TestBench.inl">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1875">
-              <caret line="125" column="33" lean-forward="false" selection-start-line="125" selection-start-column="33" selection-end-line="125" selection-end-column="33" />
+            <state relative-caret-position="257">
+              <caret line="233" column="0" lean-forward="false" selection-start-line="233" selection-start-column="0" selection-end-line="233" selection-end-column="0" />
+              <folding>
+                <marker date="1492421899724" expanded="true" signature="2780:10580" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="emsc_utils.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../base/include/functions/emsc_utils.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+              <folding>
+                <element signature="e#305#683#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fast_vector.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../base/include/types/containers/fast_vector.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="257">
+              <caret line="194" column="0" lean-forward="false" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Masks.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/Masks.h">
+      <file leaf-file-name="common.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../base/include/functions/common.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="17" lean-forward="false" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+            <state relative-caret-position="512">
+              <caret line="107" column="59" lean-forward="false" selection-start-line="107" selection-start-column="59" selection-end-line="107" selection-end-column="59" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EntityTypeInfo.inl" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/EntityTypeInfo.inl">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="885">
-              <caret line="59" column="30" lean-forward="false" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
+            <state relative-caret-position="255">
+              <caret line="17" column="20" lean-forward="false" selection-start-line="17" selection-start-column="20" selection-end-line="17" selection-end-column="20" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sysent_config.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/sysent_config.h">
+      <file leaf-file-name="Entity.inl" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/sysent/Entity.inl">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="11" column="6" lean-forward="false" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
+            <state relative-caret-position="411">
+              <caret line="136" column="5" lean-forward="true" selection-start-line="136" selection-start-column="5" selection-end-line="136" selection-end-column="5" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EntityManager.inl" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.inl">
+      <file leaf-file-name="Entity.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/include/sysent/Entity.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3345">
-              <caret line="223" column="28" lean-forward="false" selection-start-line="223" selection-start-column="28" selection-end-line="223" selection-end-column="28" />
+            <state relative-caret-position="270">
+              <caret line="21" column="28" lean-forward="true" selection-start-line="21" selection-start-column="28" selection-end-line="21" selection-end-column="28" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sysent.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/include/sysent.h">
+      <file leaf-file-name="new_allocator.h" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/include/c++/5/ext/new_allocator.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="27" lean-forward="false" selection-start-line="3" selection-start-column="27" selection-end-line="3" selection-end-column="27" />
+            <state relative-caret-position="257">
+              <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -167,15 +173,54 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>MAX_ROLES</find>
-      <find>EVENTS_CNT</find>
-      <find>MAX_COMPONENT_SIZE</find>
-      <find>CFG_</find>
-      <find>prepdate</find>
-      <find>postup</find>
+      <find>position</find>
+      <find>length_</find>
+      <find>spawn</find>
+      <find>last_word_with_ent_</find>
+      <find>body.position</find>
+      <find>BounceSystemBounceSystem</find>
+      <find>BounceSystem</find>
+      <find>collide</find>
+      <find>mit</find>
+      <find>particlerender</find>
+      <find>ctx.update_print_dt</find>
+      <find>rend.radiu</find>
+      <find>coll.radiu</find>
+      <find>close</find>
+      <find>test_id</find>
+      <find>prev_test</find>
+      <find>upd_prof_</find>
+      <find>addNewBlock</find>
+      <find>draw</find>
+      <find>addSourceLine_</find>
+      <find>int</find>
+      <find>ents_cnt</find>
+      <find>pred</find>
+      <find>CollisionEvent</find>
+      <find>emitEvent</find>
+      <find>collisionsyste</find>
+      <find>Candidate</find>
+      <find>getEntityManager</find>
+      <find>std::vector</find>
+      <find>f8</find>
     </findStrings>
     <replaceStrings>
       <replace />
+      <replace>getData</replace>
+      <replace>SystemBase::</replace>
+      <replace>getTypes()</replace>
+      <replace>ustl::</replace>
+      <replace>u32</replace>
+      <replace>std::</replace>
+      <replace>ssu</replace>
+      <replace>ustring</replace>
+      <replace>32</replace>
+      <replace>em.addSystem</replace>
+      <replace>f32</replace>
+      <replace>LOOP_SET_BITS</replace>
+      <replace>wordsCount_()</replace>
+      <replace>wordsCount_(bits_cnt)</replace>
+      <replace>fast_vector</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -184,57 +229,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/include/sysent/SystemManager.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemManager_internal.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/UnsortedPool.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/UnsortedPool.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/EntitiesPool.h" />
-        <option value="$PROJECT_DIR$/include/sysent/RolesMask.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/Pool.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/Pool.inl" />
-        <option value="$PROJECT_DIR$/../base/src/types/Index.h" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemAll.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/Type.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/MultiPool.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/containers/MultiPool.inl" />
-        <option value="$PROJECT_DIR$/../base/src/functions/sort_utils.h" />
-        <option value="$PROJECT_DIR$/include/sysent/EntityTypeInfo.h" />
-        <option value="$PROJECT_DIR$/include/sysent/EntityIndex.h" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemLoopAll.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemLoopAll.h" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemBase.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemLoopFlagged.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemBase.h" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemLoopFlagged.h" />
-        <option value="$PROJECT_DIR$/include/sysent/Mask.h" />
-        <option value="$PROJECT_DIR$/../base/src/functions/meta.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/Mask.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/Timer.h" />
-        <option value="$PROJECT_DIR$/../base/src/types/BlockMeasure.h" />
-        <option value="$PROJECT_DIR$/../base/src/functions/string_utils.h" />
-        <option value="$PROJECT_DIR$/../base/src/functions/string_utils.inl" />
-        <option value="$PROJECT_DIR$/../base/src/functions/debug.h" />
-        <option value="$PROJECT_DIR$/include/sysent.h" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemFlagged.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/SystemFlagged.h" />
-        <option value="$PROJECT_DIR$/../base/src/functions/sort_utils.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/EventSystem.h" />
-        <option value="$PROJECT_DIR$/include/sysent/EventSystem.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/System.inl" />
-        <option value="$PROJECT_DIR$/test/main.cpp" />
-        <option value="$PROJECT_DIR$/include/sysent/Entity.h" />
-        <option value="$PROJECT_DIR$/include/sysent/FlaggedSystem.h" />
-        <option value="$PROJECT_DIR$/include/sysent/FlaggedSystem.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/Entity.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/default_cfg.h" />
-        <option value="$PROJECT_DIR$/include/sysent/EntityManager.h" />
-        <option value="$PROJECT_DIR$/include/sysent/EntityManager.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/EntityTypeInfo.inl" />
-        <option value="$PROJECT_DIR$/include/sysent/Masks.h" />
+        <option value="$PROJECT_DIR$/include/sysent/SystemPipeline.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/EventHandlers.inl" />
         <option value="$PROJECT_DIR$/include/sysent/sysent_config.h" />
+        <option value="$PROJECT_DIR$/include/sysent/Masks.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/ObjFunc.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/meta.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Mask.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Mask.inl" />
+        <option value="$PROJECT_DIR$/include/sysent/RolesComposition.inl" />
+        <option value="$PROJECT_DIR$/../base/include/functions/random.h" />
+        <option value="$PROJECT_DIR$/include/sysent/EntityTypeInfo.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/EventsReciever.h" />
+        <option value="$PROJECT_DIR$/include/sysent/EntityTypeCtx.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/sort_utils.inl" />
+        <option value="$PROJECT_DIR$/../base/include/types/BitScanner.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/containers/fast_vector.h" />
         <option value="$PROJECT_DIR$/include/sysent/System.h" />
-        <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/include/sysent/RolesComposition.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/containers/MultiPool.inl" />
+        <option value="$PROJECT_DIR$/../base/include/types/BitScanner.inl" />
+        <option value="$PROJECT_DIR$/include/sysent/Entity.inl" />
+        <option value="$PROJECT_DIR$/include/sysent/Entity.h" />
+        <option value="$PROJECT_DIR$/include/sysent/EntityManager.h" />
         <option value="$PROJECT_DIR$/test/entities.h" />
+        <option value="$PROJECT_DIR$/include/sysent/SystemAll.h" />
+        <option value="$PROJECT_DIR$/include/sysent/EntitiesList.h" />
+        <option value="$PROJECT_DIR$/include/sysent/System.inl" />
+        <option value="$PROJECT_DIR$/include/sysent/EntityManager.inl" />
+        <option value="$PROJECT_DIR$/../base/include/functions/profiling.inl" />
+        <option value="$PROJECT_DIR$/../base/include/types/Bits.inl" />
+        <option value="$PROJECT_DIR$/../base/include/types/Singleton.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Singleton.inl" />
+        <option value="$PROJECT_DIR$/../base/include/functions/ssu.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Bits.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/ssu.inl" />
+        <option value="$PROJECT_DIR$/../base/include/types/SimpleFont.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/sdlinclude.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/SimpleFont.inl" />
+        <option value="$PROJECT_DIR$/test/entx_example_entities.h" />
+        <option value="$PROJECT_DIR$/include/sysent/EntitiesList.inl" />
+        <option value="$PROJECT_DIR$/../base/include/functions/defs.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/profiling.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/TestBench.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Config.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/Config.inl" />
+        <option value="$PROJECT_DIR$/../base/include/functions/common.h" />
+        <option value="$PROJECT_DIR$/../base/include/functions/emsc_utils.h" />
+        <option value="$PROJECT_DIR$/../base/include/types/TestBench.inl" />
+        <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/test/entx_example.h" />
+        <option value="$PROJECT_DIR$/test/main.cpp" />
       </list>
     </option>
   </component>
@@ -246,8 +291,8 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="1366" />
-    <option name="width" value="1914" />
+    <option name="x" value="1919" />
+    <option name="width" value="1922" />
     <option name="height" value="1055" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -277,6 +322,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="sysent" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sysent" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sysent" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -320,7 +379,7 @@
     <property name="settings.editor.selected.configurable" value="CMakeSettings" />
     <property name="recentsLimit" value="5" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../sysent-old" />
-    <property name="SearchEverywhereHistoryKey" value="PIPELINES&#9;null&#9;null&#10;MAX_ENTITY_COMPS&#9;null&#9;null&#10;timer&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Timer.h&#10;Debug&#9;null&#9;null&#10;DEBUG_B&#9;null&#9;null&#10;CLEAR_BI&#9;null&#9;null&#10;Type&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;pool&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/Pool.h&#10;entity&#9;FILE&#9;file://C:/DEV/gamedev/sysent/include/sysent/EntityManager.inl&#10;Tight&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/TightPool.h&#10;Index&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Index.h&#10;TightPool&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/TightPool.inl&#10;Unsor&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedPool.h&#10;Pool&#9;null&#9;null&#10;Versioned&#9;null&#9;null&#10;UnsortedV&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedVector.h&#10;Version&#9;null&#9;null&#10;t&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;Manager.i&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Manager.inl&#10;Manager.h&#9;FILE&#9;file://C:/DEV/gamedev/sysent/include/sysent/SystemManager.h&#10;Variant&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Variant.h&#10;Unsorted&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedVector.h&#10;Versi&#9;null&#9;null&#10;V&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/VVector.h&#10;Call&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Call.h&#10;type&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;CommonPtr&#9;null&#9;null&#10;Type.h&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;Unsort&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedVersionedVector.h&#10;Var&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Variant.h&#10;EntityManager&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/EntityManager.inl&#10;TypesPack&#9;null&#9;null&#10;variant&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/src/types/VariantCaller.h&#10;ent&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/src/sysent/types/Entity.h&#10;props&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/test/sysent_setup/entity_props.def&#10;Entity&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/src/sysent/types/Entity.h" />
+    <property name="SearchEverywhereHistoryKey" value="emsc_utils&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/emsc_utils.h&#10;testben&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/TestBench.h&#10;profiling&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.h&#10;common&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/common.h&#10;sdlinc&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/sdlinclude.h&#10;ssu&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/ssu.h&#10;Mask&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/Masks.h&#10;mask&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/Masks.h&#10;bits&#9;null&#9;null&#10;rofilin&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.inl&#10;rofil&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.h&#10;ofiling&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.h&#10;system&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/System.inl&#10;index&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/EntityIndex.h&#10;event&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/EventHandlers.inl&#10;objfu&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/ObjFunc.h&#10;profili&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.h&#10;profi&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.inl&#10;profil&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/profiling.h&#10;sorti&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/sort_utils.inl&#10;hash&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/containers/HashMap.h&#10;typein&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/Type.inl&#10;ustring&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/3rdp/ustring.h&#10;ask&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/Mask.h&#10;sor&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/functions/sort_utils.inl&#10;fast_Ve&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/containers/fast_vector.h&#10;type&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/Type.h&#10;entity&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/Entity.h&#10;hashma&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/containers/HashMap.inl&#10;hashmap&#9;FILE&#9;file:///home/grynca/DEV/gamedev/base/include/types/containers/HashMap.inl&#10;typespack&#9;null&#9;null&#10;enti&#9;FILE&#9;file:///home/grynca/DEV/gamedev/sysent/include/sysent/Entity.h&#10;PIPELINES&#9;null&#9;null&#10;MAX_ENTITY_COMPS&#9;null&#9;null&#10;timer&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Timer.h&#10;Debug&#9;null&#9;null&#10;DEBUG_B&#9;null&#9;null&#10;CLEAR_BI&#9;null&#9;null&#10;Type&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;pool&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/Pool.h&#10;Tight&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/TightPool.h&#10;Index&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Index.h&#10;TightPool&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/TightPool.inl&#10;Unsor&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedPool.h&#10;Pool&#9;null&#9;null&#10;Versioned&#9;null&#9;null&#10;UnsortedV&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/containers/UnsortedVector.h&#10;Version&#9;null&#9;null&#10;t&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Type.h&#10;Manager.i&#9;FILE&#9;file://C:/DEV/gamedev/base/src/types/Manager.inl" />
     <property name="js-jscs-nodeInterpreter" value="/usr/bin/node" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_interpreter_path" value="C:/Program Files/nodejs/node" />
@@ -335,13 +394,48 @@
       <recent name="C:\DEV\gamedev\sysent\src\setup" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Debug">
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Application.Profile">
+    <configuration default="true" type="CLion_Remote" factoryName="GDB Remote Debug" remoteCommand="" symbolFile="" sysroot="">
+      <method />
+    </configuration>
+    <configuration default="true" type="CMakeCatchTestRunConfigurationType" factoryName="Catch Test" PASS_PARENT_ENVS_2="true" TEST_MODE="SUITE_TEST">
+      <envs />
+      <method />
+    </configuration>
     <configuration default="true" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Debug" TEST_MODE="SUITE_TEST">
       <envs />
       <method />
     </configuration>
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Debug">
       <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="ChromiumRemoteDebugType" factoryName="Chromium Remote">
+      <method />
+    </configuration>
+    <configuration default="true" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
+      <method />
+    </configuration>
+    <configuration default="true" type="FirefoxRemoteDebugType" factoryName="Firefox Remote">
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerJest" factoryName="Jest">
+      <node-interpreter value="project" />
+      <working-dir value="" />
+      <envs />
+      <scope-kind value="ALL" />
       <method />
     </configuration>
     <configuration default="true" type="JavaScriptTestRunnerProtractor" factoryName="Protractor">
@@ -351,6 +445,9 @@
       <method />
     </configuration>
     <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="NodeWebKit" factoryName="NW.js">
       <method />
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -368,6 +465,13 @@
       <option name="SCRIPT_NAME" value="" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="ReactNative" factoryName="React Native">
+      <node-interpreter value="project" />
+      <platform value="ANDROID" />
+      <envs />
       <method />
     </configuration>
     <configuration default="true" type="Tox" factoryName="Tox">
@@ -380,6 +484,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="sysent" />
+      <method />
+    </configuration>
+    <configuration default="true" type="XSLT" factoryName="XSLT">
+      <option name="myOutputFile" />
+      <option name="myOpenOutputFile" value="false" />
+      <option name="myOpenInBrowser" value="false" />
+      <option name="mySmartErrorHandling" value="true" />
+      <option name="myRunnerPort" value="34873" />
+      <option name="myVmArguments" />
+      <option name="myWorkingDirectory" />
+      <option name="myModule" />
+      <option name="myJdk" />
+      <parameters />
+      <OutputType value="CONSOLE" save-to-file="false" />
+      <FileType name="XML" />
+      <JdkChoice value="FROM_MODULE" />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.grunt" factoryName="Grunt.js">
+      <node-interpreter value="project" />
+      <envs />
       <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
@@ -397,25 +522,6 @@
       <scripts />
       <node-interpreter value="project" />
       <envs />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Attests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="sysent" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Doctests">
@@ -447,15 +553,10 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="sysent" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
@@ -468,19 +569,50 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="sysent" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="true" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="sysent" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Debug" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent" EXPLICIT_BUILD_TARGET_NAME="all">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Profile" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="RelWithDebInfo" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Release" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
+      <envs />
+      <method />
+    </configuration>
+    <list size="4">
+      <item index="0" class="java.lang.String" itemvalue="Application.Debug" />
+      <item index="1" class="java.lang.String" itemvalue="Application.Build All" />
+      <item index="2" class="java.lang.String" itemvalue="Application.Profile" />
+      <item index="3" class="java.lang.String" itemvalue="Application.Release" />
+    </list>
+    <configuration default="true" type="tests" factoryName="Attests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -497,35 +629,8 @@
       <option name="TEST_TYPE" value="TEST_SCRIPT" />
       <option name="PATTERN" value="" />
       <option name="USE_PATTERN" value="false" />
-      <option name="testToRun" value="" />
-      <option name="keywords" value="" />
-      <option name="params" value="" />
-      <option name="USE_PARAM" value="false" />
-      <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="Debug" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent" EXPLICIT_BUILD_TARGET_NAME="all">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="Profile" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="RelWithDebInfo" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="Release" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sysent" TARGET_NAME="sysent" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="sysent" RUN_TARGET_NAME="sysent">
-      <envs />
-      <method />
-    </configuration>
-    <list size="4">
-      <item index="0" class="java.lang.String" itemvalue="Application.Debug" />
-      <item index="1" class="java.lang.String" itemvalue="Application.Build All" />
-      <item index="2" class="java.lang.String" itemvalue="Application.Profile" />
-      <item index="3" class="java.lang.String" itemvalue="Application.Release" />
-    </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -574,7 +679,53 @@
       <workItem from="1480749016033" duration="642000" />
       <workItem from="1480835422341" duration="2831000" />
       <workItem from="1483885852962" duration="790000" />
-      <workItem from="1483886860528" duration="10000" />
+      <workItem from="1483886860528" duration="232000" />
+      <workItem from="1485236620379" duration="1128000" />
+      <workItem from="1485238712652" duration="5100000" />
+      <workItem from="1485321079483" duration="2408000" />
+      <workItem from="1486283043391" duration="83000" />
+      <workItem from="1486668615968" duration="12074000" />
+      <workItem from="1486798789820" duration="4240000" />
+      <workItem from="1487229491065" duration="18000" />
+      <workItem from="1487229532049" duration="3726000" />
+      <workItem from="1487401317464" duration="1281000" />
+      <workItem from="1487405029041" duration="8083000" />
+      <workItem from="1487517825365" duration="29028000" />
+      <workItem from="1487827065186" duration="21317000" />
+      <workItem from="1488017981086" duration="7848000" />
+      <workItem from="1488096190510" duration="10259000" />
+      <workItem from="1488173884794" duration="633000" />
+      <workItem from="1488214936267" duration="1383000" />
+      <workItem from="1488388730393" duration="609000" />
+      <workItem from="1488565572112" duration="924000" />
+      <workItem from="1488567397214" duration="15000" />
+      <workItem from="1488613854572" duration="15991000" />
+      <workItem from="1488701745307" duration="5290000" />
+      <workItem from="1488991220340" duration="2062000" />
+      <workItem from="1489417868954" duration="2083000" />
+      <workItem from="1489468085387" duration="10000" />
+      <workItem from="1489468120207" duration="616000" />
+      <workItem from="1489471070394" duration="6243000" />
+      <workItem from="1489830260884" duration="12105000" />
+      <workItem from="1489906913554" duration="6570000" />
+      <workItem from="1489933234822" duration="10340000" />
+      <workItem from="1489987471161" duration="3515000" />
+      <workItem from="1490121118225" duration="3432000" />
+      <workItem from="1490160349752" duration="4469000" />
+      <workItem from="1490204283103" duration="1000" />
+      <workItem from="1490205187929" duration="6859000" />
+      <workItem from="1490245533731" duration="5463000" />
+      <workItem from="1490378316961" duration="92000" />
+      <workItem from="1490379124832" duration="3821000" />
+      <workItem from="1490430794014" duration="19698000" />
+      <workItem from="1490521952809" duration="10303000" />
+      <workItem from="1490807112706" duration="8230000" />
+      <workItem from="1490933576694" duration="3708000" />
+      <workItem from="1491027708309" duration="11032000" />
+      <workItem from="1491210564684" duration="652000" />
+      <workItem from="1491639468693" duration="8900000" />
+      <workItem from="1491751682372" duration="16748000" />
+      <workItem from="1492158891653" duration="46997000" />
     </task>
     <task id="LOCAL-00001" summary="EntityRoles changed from bitset to class&#10;Props moved out to Base repo&#10;">
       <created>1438890794911</created>
@@ -625,36 +776,65 @@
       <option name="project" value="LOCAL" />
       <updated>1478721465095</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="added sysent_config,&#10;minor changes">
+      <created>1483886984790</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1483886984790</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="149789000" />
+    <option name="totallyTimeSpent" value="475398000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1366" y="0" width="1914" height="1055" extended-state="4" />
-    <editor active="false" />
+    <frame x="1919" y="0" width="1922" height="1055" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11297071" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2015625" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3266399" sideWeight="0.48409405" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.41451293" sideWeight="0.6713542" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31411532" sideWeight="0.7168926" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32564843" sideWeight="0.48409405" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22190201" sideWeight="0.54535973" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32869378" sideWeight="0.48550344" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32931727" sideWeight="0.4944675" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20477137" sideWeight="0.45464024" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32669324" sideWeight="0.54583335" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="REST Client" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32930514" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32869378" sideWeight="0.48550344" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1973001" sideWeight="0.42288828" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19383697" sideWeight="0.41762254" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41533864" sideWeight="0.32864583" order="3" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3258972" sideWeight="0.7168926" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3266399" sideWeight="0.48409405" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22190201" sideWeight="0.54535973" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="REST Client" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32930514" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32869378" sideWeight="0.48550344" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32931727" sideWeight="0.4944675" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19619326" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19592628" sideWeight="0.41762254" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.35790494" sideWeight="0.45464024" order="3" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="processedProjectFiles" value="true" />
@@ -682,191 +862,450 @@
     <MESSAGE value="removed old files" />
     <MESSAGE value="changes for new typedefs&#10;removed warnings&#10;Mask moved to Base lib&#10;flags reworked:&#10;  each entity has two sets of flags - double buffer fashion&#10;  when flag is &quot;Resolved&quot;:&#10;     flag bit is moved from next_flags to curr_flags, and zeroed in curr_flags&#10;     also entity is added to FlaggedSystems, which is new type of system that updates only flagged entities&#10;     its entity list is cleared each frame&#10;     added simple profiling of systems&#10;" />
     <MESSAGE value="changes for new typedefs&#10;removed warnings&#10;Mask moved to Base lib&#10;flags reworked:&#10;  - each entity has two sets of flags - double buffer fashion&#10;  - when flag is &quot;Resolved&quot;:&#10;     -- flag bit is moved from next_flags to curr_flags, and zeroed in curr_flags&#10;     -- also entity is added to FlaggedSystems, which is new type of system that&#10;          updates only flagged entities&#10;     -- its entity list is cleared each frame&#10; added simple profiling of systems&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="changes for new typedefs&#10;removed warnings&#10;Mask moved to Base lib&#10;flags reworked:&#10;  - each entity has two sets of flags - double buffer fashion&#10;  - when flag is &quot;Resolved&quot;:&#10;     -- flag bit is moved from next_flags to curr_flags, and zeroed in curr_flags&#10;     -- also entity is added to FlaggedSystems, which is new type of system that&#10;          updates only flagged entities&#10;     -- its entity list is cleared each frame&#10; added simple profiling of systems&#10;" />
+    <MESSAGE value="added sysent_config,&#10;minor changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="added sysent_config,&#10;minor changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="235" />
+      <option name="time" value="461" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/Array.h" />
-    <entry file="file://C:/MinGW/include/stdint.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/Pool.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/Pool.inl" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/Type.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/Array.inl" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include/c++/bits/move.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/MultiPool.inl" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include/c++/bits/stl_iterator_base_types.h" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include/c++/bits/stl_algo.h" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include/c++/bits/predefined_ops.h" />
-    <entry file="file://$PROJECT_DIR$/build/Emscripten/main.html" />
-    <entry file="file://$PROJECT_DIR$/build/Emscripten/main.js" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/defs.h" />
-    <entry file="file://$PROJECT_DIR$/include/sysent/SystemLoopAll.h" />
-    <entry file="file://$PROJECT_DIR$/include/sysent/SystemLoopAll.inl" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/4.9.3/include/c++/bitset" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include/c++/bitset" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/meta.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/Timer.inl" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/BlockMeasure.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/string_utils.h" />
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/5.3.0/include/c++/bits/basic_string.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/string_utils.inl" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/Timer.h" />
-    <entry file="file://$PROJECT_DIR$/.gitignore">
+    <entry file="file://$PROJECT_DIR$/include/sysent/sysent_config.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="6" lean-forward="false" selection-start-line="8" selection-start-column="6" selection-end-line="8" selection-end-column="6" />
+          <folding>
+            <element signature="e#74#104#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/RefPtr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/SystemPos.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../base/src/base.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/debug.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/MultiPool.h" />
-    <entry file="file://$PROJECT_DIR$/../base/src/types/Type.inl" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/sort_utils.inl" />
-    <entry file="file://$PROJECT_DIR$/../base/src/functions/sort_utils.h" />
-    <entry file="file://$PROJECT_DIR$/include/sysent/EntityIndex.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="8" lean-forward="false" selection-start-line="12" selection-start-column="8" selection-end-line="12" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/EntityTypeInfo.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="541">
-          <caret line="43" column="43" lean-forward="false" selection-start-line="43" selection-start-column="43" selection-end-line="43" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../base/src/types/containers/fast_vector.h" />
-    <entry file="file://$PROJECT_DIR$/include/sysent/System.inl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="531">
-          <caret line="122" column="0" lean-forward="false" selection-start-line="122" selection-start-column="0" selection-end-line="122" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/FlaggedSystem.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="22" column="31" lean-forward="false" selection-start-line="22" selection-start-column="31" selection-end-line="22" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/FlaggedSystem.inl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="8" lean-forward="false" selection-start-line="13" selection-start-column="8" selection-end-line="13" selection-end-column="8" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/Entity.inl">
+    <entry file="file://$PROJECT_DIR$/include/sysent/EntitiesList.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1547">
-          <caret line="91" column="13" lean-forward="false" selection-start-line="91" selection-start-column="13" selection-end-line="91" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="27" column="28" lean-forward="false" selection-start-line="27" selection-start-column="28" selection-end-line="27" selection-end-column="28" />
-          <folding>
-            <element signature="e#0#21#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../base/src/types/Mask.h" />
-    <entry file="file://$PROJECT_DIR$/include/sysent/Entity.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="840">
-          <caret line="56" column="16" lean-forward="false" selection-start-line="56" selection-start-column="16" selection-end-line="56" selection-end-column="16" />
+        <state relative-caret-position="570">
+          <caret line="44" column="21" lean-forward="false" selection-start-line="44" selection-start-column="21" selection-end-line="44" selection-end-column="21" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent.h">
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Mask.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="27" lean-forward="false" selection-start-line="3" selection-start-column="27" selection-end-line="3" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1725">
-          <caret line="115" column="35" lean-forward="false" selection-start-line="115" selection-start-column="35" selection-end-line="115" selection-end-column="35" />
-          <folding>
-            <element signature="e#49#73#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.inl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3345">
-          <caret line="223" column="28" lean-forward="false" selection-start-line="223" selection-start-column="28" selection-end-line="223" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/EntityTypeInfo.inl">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="885">
-          <caret line="59" column="30" lean-forward="false" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
+        <state relative-caret-position="330">
+          <caret line="79" column="45" lean-forward="true" selection-start-line="79" selection-start-column="45" selection-end-line="79" selection-end-column="91" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/include/sysent/Masks.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="17" lean-forward="false" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+        <state relative-caret-position="105">
+          <caret line="7" column="13" lean-forward="false" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/sysent_config.h">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="11" column="6" lean-forward="false" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/sysent/System.h">
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Singleton.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="900">
-          <caret line="60" column="26" lean-forward="false" selection-start-line="60" selection-start-column="26" selection-end-line="60" selection-end-column="26" />
+        <state relative-caret-position="218">
+          <caret line="22" column="18" lean-forward="false" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Singleton.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="332">
+          <caret line="28" column="38" lean-forward="false" selection-start-line="28" selection-start-column="38" selection-end-line="28" selection-end-column="38" />
           <folding>
-            <marker date="1483270945325" expanded="false" signature="953:1509" ph="..." />
+            <element signature="e#0#22#0" expanded="false" />
+            <element signature="e#114#144#0" expanded="false" />
+            <element signature="e#1132#1162#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/ssu.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="279">
+          <caret line="47" column="44" lean-forward="false" selection-start-line="47" selection-start-column="44" selection-end-line="47" selection-end-column="67" />
+          <folding>
+            <element signature="e#1294#1306#0" expanded="false" />
+            <element signature="e#1407#1419#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Bits.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="11" column="0" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/ssu.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1317">
+          <caret line="113" column="23" lean-forward="false" selection-start-line="113" selection-start-column="23" selection-end-line="113" selection-end-column="23" />
+          <folding>
+            <element signature="e#2576#2588#0" expanded="false" />
+            <element signature="e#2805#2817#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/SDL2/SDL_rect.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="130" column="56" lean-forward="false" selection-start-line="130" selection-start-column="56" selection-end-line="130" selection-end-column="56" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/meta.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="20" column="8" lean-forward="false" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/SimpleFont.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="214">
+          <caret line="41" column="14" lean-forward="false" selection-start-line="41" selection-start-column="14" selection-end-line="41" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/sdlinclude.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="23" column="0" lean-forward="false" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/SimpleFont.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="380">
+          <caret line="249" column="0" lean-forward="false" selection-start-line="249" selection-start-column="0" selection-end-line="249" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/glm/detail/type_vec4.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="138" column="25" lean-forward="false" selection-start-line="138" selection-start-column="25" selection-end-line="138" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/glm/detail/func_geometric.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="90" column="22" lean-forward="false" selection-start-line="90" selection-start-column="22" selection-end-line="90" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/SDL2/SDL_render.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="726" column="28" lean-forward="false" selection-start-line="726" selection-start-column="28" selection-end-line="726" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/entx_example_entities.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="511">
+          <caret line="83" column="0" lean-forward="true" selection-start-line="83" selection-start-column="0" selection-end-line="83" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/base.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Bits.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="99" column="70" lean-forward="false" selection-start-line="99" selection-start-column="61" selection-end-line="99" selection-end-column="70" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/BitScanner.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="28" column="0" lean-forward="false" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/EntitiesList.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="542">
+          <caret line="104" column="22" lean-forward="false" selection-start-line="104" selection-start-column="22" selection-end-line="104" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/defs.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <folding>
+            <element signature="e#31#50#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/5/bits/alloc_traits.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="529" column="0" lean-forward="false" selection-start-line="529" selection-start-column="0" selection-end-line="529" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/5/bits/stl_vector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="916" column="0" lean-forward="false" selection-start-line="916" selection-start-column="0" selection-end-line="916" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/ObjFunc.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="349">
+          <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-491">
+          <caret line="19" column="10" lean-forward="false" selection-start-line="19" selection-start-column="10" selection-end-line="19" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/EntityManager.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="202">
+          <caret line="20" column="24" lean-forward="false" selection-start-line="20" selection-start-column="24" selection-end-line="20" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Config.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="47" column="23" lean-forward="false" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/Config.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="19" column="29" lean-forward="false" selection-start-line="19" selection-start-column="29" selection-end-line="19" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/RolesComposition.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="214">
+          <caret line="23" column="20" lean-forward="false" selection-start-line="23" selection-start-column="20" selection-end-line="23" selection-end-column="20" />
+          <folding>
+            <element signature="e#433#453#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/System.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="16" column="35" lean-forward="true" selection-start-line="16" selection-start-column="35" selection-end-line="16" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/SystemAll.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="484">
+          <caret line="111" column="44" lean-forward="false" selection-start-line="111" selection-start-column="44" selection-end-line="111" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+          <folding>
+            <element signature="e#47#80#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/profiling.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="20" column="29" lean-forward="false" selection-start-line="20" selection-start-column="29" selection-end-line="20" selection-end-column="29" />
+          <folding>
+            <element signature="e#2466#2485#0" expanded="false" />
+            <element signature="e#5388#5652#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/profiling.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="82" column="27" lean-forward="false" selection-start-line="82" selection-start-column="27" selection-end-line="82" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/TestBench.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="89" column="18" lean-forward="false" selection-start-line="89" selection-start-column="18" selection-end-line="89" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/TestBench.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="233" column="0" lean-forward="false" selection-start-line="233" selection-start-column="0" selection-end-line="233" selection-end-column="0" />
+          <folding>
+            <marker date="1492421899724" expanded="true" signature="2780:10580" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/emsc_utils.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding>
+            <element signature="e#305#683#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/types/containers/fast_vector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="194" column="0" lean-forward="false" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/entities.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1875">
-          <caret line="125" column="33" lean-forward="false" selection-start-line="125" selection-start-column="33" selection-end-line="125" selection-end-column="33" />
+        <state relative-caret-position="375">
+          <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../base/include/functions/common.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="512">
+          <caret line="107" column="59" lean-forward="false" selection-start-line="107" selection-start-column="59" selection-end-line="107" selection-end-column="59" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+        <state relative-caret-position="60">
+          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/entx_example.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="410">
+          <caret line="404" column="8" lean-forward="false" selection-start-line="404" selection-start-column="8" selection-end-line="405" selection-end-column="78" />
+          <folding>
+            <element signature="e#322#341#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/5/ext/new_allocator.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="20" lean-forward="false" selection-start-line="17" selection-start-column="20" selection-end-line="17" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/Entity.inl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="411">
+          <caret line="136" column="5" lean-forward="true" selection-start-line="136" selection-start-column="5" selection-end-line="136" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/sysent/Entity.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="21" column="28" lean-forward="true" selection-start-line="21" selection-start-column="28" selection-end-line="21" selection-end-column="28" />
           <folding />
         </state>
       </provider>

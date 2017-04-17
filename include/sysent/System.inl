@@ -1,112 +1,158 @@
-#include "System.h"
+#include "SystemAll.h"
 #include "EntityManager.h"
+#include "RolesComposition.h"
 
 namespace grynca {
 
-    inline System::System()
-     : manager_(NULL), pipeline_id_(InvalidId()), is_flagged_system_(false), u_et_id_((u16)InvalidId()), u_pos_(InvalidId())
+    inline SystemBase::SystemBase()
+     : enabled_(true), entities_(this)
     {
     }
 
-    inline System::~System()
+    inline SystemBase::~SystemBase()
     {
+        unsubscribeAllEvents_();
     }
 
-    inline EntityManager& System::getEntityManager() {
-        return *manager_;
+    inline EntityManager& SystemBase::getEntityManager() {
+        return entities_.getManager();
     }
 
-    inline bool System::careAboutEntity(Entity& e) {
+    inline bool SystemBase::careAboutEntity(const Entity& e)const {
         return areRolesCompatible(e.getRoles());
     }
 
-    inline bool System::areRolesCompatible(const RolesMask& rm) {
+    inline bool SystemBase::areRolesCompatible(const RolesMask& rm)const {
         return (rm&needed_roles_) == needed_roles_;
     }
 
-    inline bool System::isEntAtPos_(Entities& ents, Entity& ent, u32 pos) {
-        fast_vector<u32>& rel_ents = ents[ent.getIndex().getEntityTypeId()];
-        if (pos >=  rel_ents.size())
-            return false;
-        return rel_ents[pos] == ent.getIndex().getEntityIndex();
+    inline u32 SystemBase::getEntitiesCount()const {
+        return entities_.getCount();
     }
 
+    template <typename EventType, typename HandlerType>
+    inline void SystemBase::subscribeEvent(HandlerType *handler) {
+        ASSERT_M(findSubscribedEvent_<EventType>() == InvalidId(), "Event already subscribed.");
 
-    inline void System::addEntity_(Entity& e) {
-        ASSERT(careAboutEntity(e));
-        if (isFlaggedSystem()) {
-            afterAddedEntity(e);
-        }
-        else {
-            EntityIndex entity_id = e.getIndex();
-            if (entity_id.getEntityTypeId() == u_et_id_)
-                deferred_add_.push_back(e);
-            else
-                innerAdd_(e);
-        }
-    }
+        EntityManager& em = getEntityManager();
+        event_handlers_.emplace_back();
+        EventHandler& eh = event_handlers_.back();
+        eh.event_id = em.getEventId_<EventType>();
+        eh.cb.bind<EventRecieveHelper<EventType, HandlerType> >((HandlerType *) this);
 
-    inline void System::removeEntity_(Entity& e) {
-        EntityIndex entity_id = e.getIndex();
-        if (entity_id.getEntityTypeId() == u_et_id_) {
-            deferred_remove_.push_back(e);
-        }
-        else {
-            innerRemove_(e);
+        for (u32 i=0; i<compatible_compositions_.size(); ++i) {
+            u32 comp_id = compatible_compositions_[i];
+            if (enabled_) {
+                EventCallbackId cb_id = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb);
+                eh.subscribed.push_back(cb_id);
+            }
+            else {
+                eh.subscribed.emplace_back();
+            }
         }
     }
 
-    inline u32 System::getFlagPosition_(u32 flag_id) {
+    template <typename HandlerType>
+    inline void SystemBase::subscribeFlags(HandlerType *handler, FlagsMask flags_mask) {
+        tracked_flags_ = flags_mask;
+
+        struct Helper {
+            static void f(HandlerType* h, Entity& e, u32 flag_id) {
+                h->recieve(e, flag_id);
+            }
+        };
+
+        flag_recieve_func_.bind<Helper>(handler);
+    }
+
+    template <typename EventType>
+    inline void SystemBase::unsubscribeEvent() {
+        u32 ev_pos = findSubscribedEvent_<EventType>();
+        ASSERT_M(ev_pos != InvalidId(), "Event not subscribed.");
+
+        EntityManager& em = getEntityManager();
+        EventHandler& eh = event_handlers_[ev_pos];
+        for (u32 i=0; i<compatible_compositions_.size(); ++i) {
+            u32 comp_id = compatible_compositions_[i];
+            em.roles_compositions_.accComposition(comp_id).system_events_.removeCallback(eh.subscribed[i]);
+        }
+
+        event_handlers_.erase(event_handlers_.begin()+ev_pos);
+    }
+
+    inline const RolesMask& SystemBase::getNeededRoles()const {
+        return needed_roles_;
+    }
+
+    inline const FlagsMask& SystemBase::getTrackedFlags()const {
+        return tracked_flags_;
+    }
+
+    inline SystemPos SystemBase::getSystemPos()const {
+        return system_pos_;
+    }
+
+    inline void SystemBase::enable() {
+        ASSERT(!isEnabled());
+        enabled_ = true;
+        subscribeAllEvents_();
+    }
+
+    inline void SystemBase::disable() {
+        ASSERT(isEnabled());
+        enabled_ = false;
+        unsubscribeAllEvents_();
+    }
+
+    inline bool SystemBase::isCurrentlyLooping(u16 ent_type_id)const {
+        return entities_.isCurrentlyLooping(ent_type_id);
+    }
+
+    inline bool SystemBase::isEnabled()const {
+        return enabled_;
+    }
+
+    template <typename EventType>
+    inline u32 SystemBase::findSubscribedEvent_() {
+        u32 event_id = getEntityManager().getEventId_<EventType>();
+        for (u32 i=0; i<event_handlers_.size(); ++i) {
+            if (event_handlers_[i].event_id == event_id)
+                return i;
+        }
+        return InvalidId();
+    }
+
+    inline void SystemBase::subscribeToComposition_(RolesComposition& comp) {
+        compatible_compositions_.push_back(comp.getId());
+
+        for (u32 i=0; i<event_handlers_.size(); ++i) {
+            EventHandler& eh = event_handlers_[i];
+            if (enabled_) {
+                EventCallbackId cb_id = comp.system_events_.addCallback(eh.event_id, eh.cb);
+                eh.subscribed.push_back(cb_id);
+            }
+            else {
+                eh.subscribed.emplace_back();
+            }
+        }
+    }
+
+    inline u32 SystemBase::getFlagPosition_(u32 flag_id)const {
         ASSERT_M(flag_id <= FlagsMask::size() && flag_positions_[flag_id]!=InvalidId(),
-                "This flag is not tracked by this system");
+                 "This flag is not tracked by this system");
         return flag_positions_[flag_id];
     }
 
-    inline void System::update_(Entity& e, f32 dt) {
-        PROFILE_MEASURE_FROM(pre_update_m_);
-        preUpdate(dt);
-        PROFILE_MEASURE_TO(pre_update_m_);
-
-        PROFILE_MEASURE_FROM(update_m_);
-        for (u_et_id_=0; u_et_id_<relevant_entities_.size(); ++u_et_id_) {
-            EntityManager::EntityTypeCtx& etctx = manager_->entity_types_[u_et_id_];
-            fast_vector<u32>& rel_ents = relevant_entities_[u_et_id_];
-            e.index_.setEntityTypeId(u_et_id_);
-
-            for (u_pos_ = 0; u_pos_<rel_ents.size(); ++u_pos_) {
-                etctx.comps_pool.getIndexForPos2(rel_ents[u_pos_], e.index_.accInnerIndex());
-                updateEntity(e, dt);
-                e.clearTrackedFlagsForSystem_(this);
-            }
-
-            if (!deferred_add_.empty()) {
-                for (u32 i=0; i<deferred_add_.size(); ++i) {
-                    innerAdd_(deferred_add_[i]);
-                }
-                deferred_add_.clear();
-            }
-            if (!deferred_remove_.empty()) {
-                for (u32 i=0; i<deferred_remove_.size(); ++i) {
-                    innerRemove_(deferred_remove_[i]);
-                }
-                deferred_remove_.clear();
-            }
-        }
-        u_pos_ = u32(-1);
-        PROFILE_MEASURE_TO(update_m_);
-
-        PROFILE_MEASURE_FROM(post_update_m_);
-        postUpdate(dt);
-        PROFILE_MEASURE_TO(post_update_m_);
+    inline void SystemBase::update_(f32 dt) {
+        PROFILE_SAMPLE(upd_prof_);
+        update(dt, entities_);
+        postUpdate_();
     }
 
-    inline void System::init_(EntityManager& mgr, u16 entity_types_count, u32 pipeline_id, u32 system_id, u32& flags_offset_io) {
-        manager_ = &mgr;
-        pipeline_id_ = pipeline_id;
-        system_id_ = system_id;
+    inline void SystemBase::init_(EntityManager& mgr, u16 entity_types_cnt, u32 pipeline_id, u32 system_id, u32& flags_offset_io) {
+        entities_.init(mgr, entity_types_cnt);
+        system_pos_ = SystemPos(pipeline_id, system_id);
         needed_roles_ = NeededRoles();
-        tracked_flags_ = TrackedFlags();
-        relevant_entities_.resize(entity_types_count);
 
         for (u32 fid=0; fid<FlagsMask::size(); ++fid) {
             if (tracked_flags_[fid]) {
@@ -119,26 +165,44 @@ namespace grynca {
             }
         }
 
-        init();
+        PROFILE_ID_INIT(upd_prof_, "system " + ssu::toStringA(system_pos_.system_id));
     }
 
-    inline void System::innerAdd_(Entity& e) {
-        EntityIndex entity_id = e.getIndex();
-        fast_vector<u32>& rel_ents = relevant_entities_[entity_id.getEntityTypeId()];
-        u32 pos = bisectFindInsert(rel_ents, entity_id.getEntityIndex());
-        ASSERT_M(!isEntAtPos_(relevant_entities_, e, pos), "Already contained in system.");
-        rel_ents.insert(rel_ents.begin() + pos, entity_id.getEntityIndex());
-        afterAddedEntity(e);
-    }
-
-    inline void System::innerRemove_(Entity& e) {
-        beforeRemovedEntity(e);
-        EntityIndex entity_id = e.getIndex();
-        fast_vector<u32>& rel_ents = relevant_entities_[entity_id.getEntityTypeId()];
-        u32 pos = bisectFind(rel_ents, entity_id.getEntityIndex());
-        if (pos != InvalidId()) {
-            rel_ents.erase(rel_ents.begin() + pos);
+    inline void SystemBase::unsubscribeAllEvents_() {
+        EntityManager& em = getEntityManager();
+        for (u32 i=0; i<event_handlers_.size(); ++i) {
+            EventHandler& eh = event_handlers_[i];
+            for (u32 j=0; j<eh.subscribed.size(); ++j) {
+                u32 comp_id = compatible_compositions_[j];
+                em.roles_compositions_.accComposition(comp_id).system_events_.removeCallback(eh.subscribed[j]);
+                eh.subscribed[j].invalidate();
+            }
         }
     }
 
+    inline void SystemBase::subscribeAllEvents_() {
+        EntityManager& em = getEntityManager();
+        for (u32 i=0; i<event_handlers_.size(); ++i) {
+            EventHandler& eh = event_handlers_[i];
+            for (u32 j=0; j<eh.subscribed.size(); ++j) {
+                ASSERT_M(!eh.subscribed[j].isValid(), "Already subscribed");
+                u32 comp_id = compatible_compositions_[j];
+                EventCallbackId cb_id = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb);
+                eh.subscribed[j] = cb_id;
+            }
+        }
+    }
+
+    inline bool SystemScheduled::scheduleEntityUpdate(const Entity& e) {
+        ASSERT(careAboutEntity(e));
+        return entities_.addEntity(e.getIndex());
+    }
+
+    inline bool SystemScheduled::scheduleEntityUpdate(EntityIndex eid) {
+        return entities_.addEntity(eid);
+    }
+
+    inline void SystemScheduled::postUpdate_() {
+        entities_.clear();
+    }
 }
