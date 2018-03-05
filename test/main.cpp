@@ -1,10 +1,10 @@
-#define PROFILE_IN_RELEASE
+#undef NPROFILE     // always profile
 
 #include "base.h"
 using namespace grynca;
 #include "entx_example.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     std::srand(std::time(0));
 
     SDLTestBenchSton::create(1024, 768, true);

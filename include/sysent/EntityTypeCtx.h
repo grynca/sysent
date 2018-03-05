@@ -2,7 +2,7 @@
 #define ENTITYTYPECTX_H
 
 #include "EntityTypeInfo.h"
-#include "types/containers/MultiPool.h"
+#include "types/containers/CompsPool.h"
 
 namespace grynca {
 
@@ -10,7 +10,7 @@ namespace grynca {
     class RolesCompositions;
     class SystemsPipeline;
 
-    typedef MultiPool<SYSENT_MAX_ENTITY_COMPS, EntityManager> EntitiesPool;
+    typedef CompsPool<SYSENT_MAX_ENTITY_COMPS, EntityManager> EntitiesPool;
 
     class EntityTypeCtx {
     public:
@@ -32,9 +32,9 @@ namespace grynca {
     template <typename EntType>
     inline void EntityTypeCtx::init(u32 initial_reserve, RolesCompositions& compos, SystemsPipeline* pipelines) {
         info.init<EntType>();
-        pool.initComponents<typename EntType::ComponentTypes>();
+        pool.initComponents<typename EntType::ComponentDataTypes>();
         pool.reserve(initial_reserve);
-        roles_composition_id = compos.getId(info.getInitialComponentRoles(), pipelines);
+        roles_composition_id = compos.getOrCreateId(info.getInitialComponentRoles(), pipelines);
     }
 
 }

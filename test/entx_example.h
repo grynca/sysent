@@ -20,12 +20,14 @@ DEFINE_ENUM(EntityFlags,
 #include "glm/glm.hpp"
 #include "functions/defs.h"
 
-struct CBodyData {
+#define PI 3.141592654f
+
+struct CBody {
     static RolesMask componentRoles() {
         return EntityRoles::erMovableMask();
     }
 
-    CBodyData()
+    CBody()
      : rotation(0.0f), rotationd(0.0f), alpha(0.0f)
     {}
 
@@ -36,7 +38,7 @@ struct CBodyData {
     f32 alpha;
 };
 
-struct CRenderableData {
+struct CRenderable {
     static RolesMask componentRoles() {
         return EntityRoles::erRenderableMask();
     }
@@ -45,12 +47,12 @@ struct CRenderableData {
     glm::ivec4 colour;
 };
 
-struct CParticleData {
+struct CParticle {
     static RolesMask componentRoles() {
         return EntityRoles::erParticleMask();
     }
 
-    explicit CParticleData()
+    explicit CParticle()
     : radius(0.0f), alpha(0.0f), d(0.0f)
     {}
 
@@ -67,7 +69,7 @@ struct CParticleData {
     f32 d;
 };
 
-struct CCollidableData {
+struct CCollidable {
     static RolesMask componentRoles() {
         return EntityRoles::erCollidableMask();
     }
@@ -76,12 +78,12 @@ struct CCollidableData {
 };
 
 
-class MyEntity : public EntityDef<CCollidableData, CBodyData, CRenderableData> {
+class MyEntity : public EntityDef<CCollidable, CBody, CRenderable> {
 public:
 
 };
 
-class Particle : public EntityDef<CParticleData, CBodyData> {
+class Particle : public EntityDef<CParticle, CBody> {
 public:
 
 };
@@ -96,13 +98,14 @@ struct CollisionEvent : public EntityEvent {
 
 class SpawnSystem : public SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "SpawnSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erCollidableMask();
     }
 
-    explicit SpawnSystem(SDL_Renderer* renderer, int count)
-     : size_(0), count_(count)
-    {
+    void init(SDL_Renderer* renderer, int count) {
+        count_ = count;
         SDL_GetRendererOutputSize(renderer, &size_.x, &size_.y);
     }
 
@@ -112,21 +115,21 @@ public:
         u32 spawn_cnt = count_ - curr_ents_cnt;
         for (u32 i=0; i<spawn_cnt; ++i) {
             Entity e = getEntityManager().newEntity(EntityTypes::pos<MyEntity>());
-            CCollidableData& coll = e.getData<CCollidableData>();
-            coll.radius = randFloat(5, 15);
+            CCollidable* coll = e.getData<CCollidable>();
+            coll->radius = randFloat(5, 15);
 
-            CBodyData& body = e.getData<CBodyData>();
-            body.position.x = randFloat(size_.x);
-            body.position.y = randFloat(size_.y);
-            body.direction.x = randFloat(-50, 50);
-            body.direction.y = randFloat(-50, 50);
+            CBody* body = e.getData<CBody>();
+            body->position.x = randFloat(size_.x);
+            body->position.y = randFloat(size_.y);
+            body->direction.x = randFloat(-50, 50);
+            body->direction.y = randFloat(-50, 50);
 
-            CRenderableData& rend = e.getData<CRenderableData>();
-            rend.radius = coll.radius;
-            rend.colour.r = u32(randFloat(128, 255));
-            rend.colour.g = u32(randFloat(128, 255));
-            rend.colour.b = u32(randFloat(128, 255));
-            rend.colour.a = 255;
+            CRenderable* rend = e.getData<CRenderable>();
+            rend->radius = coll->radius;
+            rend->colour.r = u32(randFloat(128, 255));
+            rend->colour.g = u32(randFloat(128, 255));
+            rend->colour.b = u32(randFloat(128, 255));
+            rend->colour.a = 255;
         }
     }
 
@@ -138,40 +141,46 @@ private:
 
 class BodySystem : public SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "BodySystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erMovableMask();
     }
 
     virtual void update(f32 dt, EntitiesList& entities) override {
-        entities.loopEntities([dt](Entity& e) {
-            CBodyData& body = e.getData<CBodyData>();
-            body.position += body.direction * dt;
-            body.rotation += body.rotationd * dt;
-            body.alpha = std::min(1.0f, body.alpha + dt);
+        using FastComps = TypesPack<CBody>;
+        //entities.loopEntities([dt](Entity& e) {
+        entities.loopEntities<FastComps>([dt](CompsPtrs<FastComps>& comps, Entity& e) {
+            //CBody* body = e.getData<CBody>();
+            CBody* body = comps.accPtr<CBody>();
+            body->position += body->direction * dt;
+            body->rotation += body->rotationd * dt;
+            body->alpha = std::min(1.0f, body->alpha + dt);
         });
     }
 };
 
 class BounceSystem : public SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "BounceSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erMovableMask();
     }
 
-    explicit BounceSystem(SDL_Renderer* renderer)
-     : size_(0)
-    {
+    void init(SDL_Renderer* renderer) {
         SDL_GetRendererOutputSize(renderer, &size_.x, &size_.y);
     }
 
     virtual void update(f32 dt,EntitiesList& entities) override {
-        entities.loopEntities([this, dt](Entity& e) {
-            CBodyData& body = e.getData<CBodyData>();
-            if (body.position.x < 0 || body.position.x >= size_.x)
-                body.direction.x = -body.direction.x;
-            if (body.position.y < 0 || body.position.y  >= size_.y)
-            if (body.position.y < 0 || body.position.y  >= size_.y)
-                body.direction.y = -body.direction.y;
+        using FastCompTypes = TypesPack<CBody>;
+        entities.loopEntities<FastCompTypes>([this, dt](CompsPtrs<FastCompTypes>& comps, Entity& e) {
+            CBody* body = comps.accPtr<CBody>();
+            if (body->position.x < 0 || body->position.x >= size_.x)
+                body->direction.x = -body->direction.x;
+            if (body->position.y < 0 || body->position.y  >= size_.y)
+            if (body->position.y < 0 || body->position.y  >= size_.y)
+                body->direction.y = -body->direction.y;
         });
     }
 
@@ -189,11 +198,13 @@ class CollisionSystem : public SystemAll {
     };
 
 public:
+    virtual const ustring getSystemName_() override { return "CollisionSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erCollidableMask();
     }
 
-    explicit CollisionSystem(SDL_Renderer* renderer) {
+    void init(SDL_Renderer* renderer) {
         int x, y;
         SDL_GetRendererOutputSize(renderer, &x, &y);
         size_.x = x / PARTITIONS + 1;
@@ -213,15 +224,16 @@ private:
     }
 
     void collect_(EntitiesList& entities) {
-        entities.loopEntities([this](Entity& e) {
-            CBodyData& body = e.getData<CBodyData>();
-            CCollidableData& coll = e.getData<CCollidableData>();
-            u32 left = static_cast<i32>(body.position.x - coll.radius) / PARTITIONS;
-            u32 top = static_cast<i32>(body.position.y - coll.radius) / PARTITIONS;
-            u32 right = static_cast<i32>(body.position.x + coll.radius) / PARTITIONS;
-            u32 bottom = static_cast<i32>(body.position.y + coll.radius) / PARTITIONS;
+        using FastCompTypes = TypesPack<CBody, CCollidable>;
+        entities.loopEntities<FastCompTypes>([this](CompsPtrs<FastCompTypes>& comps, Entity& e) {
+            CBody* body = comps.accPtr<CBody>();
+            CCollidable* coll = comps.accPtr<CCollidable>();
+            u32 left = static_cast<i32>(body->position.x - coll->radius) / PARTITIONS;
+            u32 top = static_cast<i32>(body->position.y - coll->radius) / PARTITIONS;
+            u32 right = static_cast<i32>(body->position.x + coll->radius) / PARTITIONS;
+            u32 bottom = static_cast<i32>(body->position.y + coll->radius) / PARTITIONS;
 
-            Candidate candidate {body.position, coll.radius, e.getIndex()};
+            Candidate candidate {body->position, coll->radius, e.getIndex()};
 
             u32 slots[4] = {
                     u32(std::max(i32(left + top * size_.x), 0)),
@@ -272,19 +284,22 @@ private:
 // Fade out and then remove particles.
 class ParticleSystem : public SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "ParticleSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erParticleMask();
     }
 
     virtual void update(f32 dt, EntitiesList& entities) override {
-        entities.loopEntities([dt](Entity& e) {
-            CParticleData& particle = e.getData<CParticleData>();
-            particle.alpha -= particle.d * dt;
-            if (particle.alpha <= 0) {
+        using FastCompTypes = TypesPack<CParticle>;
+        entities.loopEntities<FastCompTypes>([dt](CompsPtrs<FastCompTypes>& comps, Entity& e) {
+            CParticle* particle = comps.accPtr<CParticle>();
+            particle->alpha -= particle->d * dt;
+            if (particle->alpha <= 0) {
                 e.kill();
             }
             else {
-                particle.colour.a = particle.alpha;
+                particle->colour.a = particle->alpha;
             }
         });
     }
@@ -293,22 +308,24 @@ public:
 // Renders all explosion particles efficiently as a quad vertex array.
 class ParticleRenderSystem : SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "ParticleRenderSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erParticleMask();
     }
 
-    explicit ParticleRenderSystem(SDL_Renderer* renderer)
-     : renderer_(renderer)
-    {
+    void init(SDL_Renderer* renderer) {
+        renderer_ = renderer;
     }
 
     virtual void update(f32 dt, EntitiesList& entities) override {
-        entities.loopEntities([this](Entity& e) {
-            CParticleData& particle = e.getData<CParticleData>();
-            CBodyData& body = e.getData<CBodyData>();
+        using FastCompTypes = TypesPack<CParticle, CBody>;
+        entities.loopEntities<FastCompTypes>([this](CompsPtrs<FastCompTypes>& comps, Entity& e) {
+            CParticle* particle = comps.accPtr<CParticle>();
+            CBody* body = comps.accPtr<CBody>();
 
-            SDL_SetRenderDrawColor(renderer_, particle.colour.r, particle.colour.g, particle.colour.b, particle.colour.a);
-            SDL_Rect r{i32(body.position.x), i32(body.position.y), i32(particle.radius*2), i32(particle.radius*2) };
+            SDL_SetRenderDrawColor(renderer_, particle->colour.r, particle->colour.g, particle->colour.b, particle->colour.a);
+            SDL_Rect r{i32(body->position.x), i32(body->position.y), i32(particle->radius*2), i32(particle->radius*2) };
             SDL_RenderDrawRect(renderer_, &r);
         });
     }
@@ -320,11 +337,13 @@ private:
 // For any two colliding bodies, destroys the bodies and emits a bunch of bodgy explosion particles.
 class ExplosionSystem : public SystemScheduled {
 public:
+    virtual const ustring getSystemName_() override { return "ExplosionSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erCollidableMask();
     }
 
-    explicit ExplosionSystem() {
+    void init() {
         subscribeEvent<CollisionEvent>(this);
     }
 
@@ -342,32 +361,32 @@ public:
     }
 
     void emitParticles_(Entity& e) {
-        CBodyData& body = e.getData<CBodyData>();
-        CRenderableData& rend = e.getData<CRenderableData>();
-        CCollidableData& coll = e.getData<CCollidableData>();
+        CBody* body = e.getData<CBody>();
+        CRenderable* rend = e.getData<CRenderable>();
+        CCollidable* coll = e.getData<CCollidable>();
 
-        glm::ivec4 clr = rend.colour;
+        glm::ivec4 clr = rend->colour;
         clr.a = 200;
 
-        f32 area = f32(M_PI * coll.radius * coll.radius) / 5.0f;
+        f32 area = f32(PI * coll->radius * coll->radius) / 5.0f;
         for (int i = 0; i < area; i++) {
             Entity pent = getEntityManager().newEntity(EntityTypes::pos<Particle>());
             f32 rotationd = randFloat(180, 900);
             if (std::rand() % 2 == 0) rotationd = -rotationd;
 
-            float offset = randFloat(1, coll.radius+1);
-            float angle = randFloat(360) * M_PI / 180.0f;
-            CBodyData& pbody = pent.getData<CBodyData>();
+            float offset = randFloat(1, coll->radius+1);
+            float angle = randFloat(360) * PI / 180.0f;
+            CBody* pbody = pent.getData<CBody>();
             f32 sinr = sinf(angle);
             f32 cosr = cosf(angle);
-            pbody.position = body.position + glm::vec2(offset * cosr, offset * sinr);
-            pbody.direction = body.direction + glm::vec2(offset * 2 * cosr, offset * 2 * sinr);
-            pbody.rotationd = rotationd;
+            pbody->position = body->position + glm::vec2(offset * cosr, offset * sinr);
+            pbody->direction = body->direction + glm::vec2(offset * 2 * cosr, offset * 2 * sinr);
+            pbody->rotationd = rotationd;
 
             float radius = randFloat(1, 4);
 
-            CParticleData& part = pent.getData<CParticleData>();
-            part.set(clr, radius, radius/2);
+            CParticle* part = pent.getData<CParticle>();
+            part->set(clr, radius, radius/2);
         }
     }
 };
@@ -375,35 +394,49 @@ public:
 // Render all Renderable entities and draw some informational text.
 class RenderSystem  : public SystemAll {
 public:
+    virtual const ustring getSystemName_() override { return "RenderSystem"; }
+
     virtual RolesMask NeededRoles() override {
         return EntityRoles::erRenderableMask();
     }
 
-    explicit RenderSystem(SDL_Renderer* renderer)
-     : renderer_(renderer)
-    {
+    void init(SDL_Renderer* renderer) {
+        renderer_ = renderer;
         SDL_GetRendererOutputSize(renderer, &size_.x, &size_.y);
     }
 
     virtual void update(f32 dt, EntitiesList& entities) override {
-        entities.loopEntities([this](Entity& e) {
-            CBodyData& body = e.getData<CBodyData>();
-            CRenderableData& rend = e.getData<CRenderableData>();
+        using FastCompTypes = TypesPack<CBody, CRenderable>;
+        entities.loopEntities<FastCompTypes>([this](CompsPtrs<FastCompTypes>& comps, Entity& e) {
+            CBody* body = comps.accPtr<CBody>();
+            CRenderable* rend = comps.accPtr<CRenderable>();
 
-            glm::ivec4 clr = rend.colour;
-            clr.a = u32(body.alpha * 255);
+            glm::ivec4 clr = rend->colour;
+            clr.a = u32(body->alpha * 255);
 
-            SDL_Rect rect{i32(body.position.x - rend.radius), i32(body.position.y - rend.radius), i32(rend.radius*2), i32(rend.radius*2)};
+            SDL_Rect rect{i32(body->position.x - rend->radius), i32(body->position.y - rend->radius), i32(rend->radius*2), i32(rend->radius*2)};
             SDL_SetRenderDrawColor(renderer_, clr.r, clr.g, clr.b, clr.a);
             SDL_RenderFillRect(renderer_, &rect);
         });
 
         u32 ents_cnt = 0;
         for (u32 i=0; i<EntityTypes::getTypesCount(); ++i) {
-            ents_cnt += getEntityManager().getEntitiesPool(i).occupiedSize();
+            ents_cnt += getEntityManager().getEntitiesPool(i).getOccupiedSize();
         }
-        F8x8::SDL2Text fps_lbl(renderer_, ssu::formatA("entities: %u", ents_cnt) );
-        fps_lbl.draw(255, 255, 255, 255, size_.x - 5 - fps_lbl.getWidth(), 5);
+
+        f32 ents_lists_memory = 0.0f;
+        for (u32 i=0; i<SYSENT_PIPELINES_CNT; ++i) {
+            u32 pl_size = getEntityManager().getSystemsPipelineSize(i);
+            for (u32 j=0; j<pl_size; ++j) {
+                SystemBase* s = getEntityManager().getSystem({i, j});
+                ents_lists_memory += s->calcEntsListMemoryUsage();
+            }
+        }
+        ents_lists_memory /= (1024*1024);
+
+        F8x8::SDL2Text info_lbl(renderer_, ssu::formatA("entities: %u\nent_lists_mem: %.3fMB", ents_cnt, ents_lists_memory) );
+        info_lbl.setColor(255, 255, 255, 255);
+        info_lbl.draw(size_.x - 5 - info_lbl.getWidth(), 5);
     }
 
 private:
@@ -429,14 +462,16 @@ public:
         em = new EntityManager();
         em->addEntityTypes<EntityTypes>(ents_cnt);
 
-        em->addSystem<SpawnSystem>(0, tb.getRenderer(), ents_cnt);
+        em->addSystem<SpawnSystem>(0).init(tb.getRenderer(), ents_cnt);
         em->addSystem<BodySystem>(0);
-        em->addSystem<BounceSystem>(0, tb.getRenderer());
-        em->addSystem<CollisionSystem>(0, tb.getRenderer());
-        em->addSystem<ExplosionSystem>(0);
+        em->addSystem<BounceSystem>(0).init(tb.getRenderer());
+        em->addSystem<CollisionSystem>(0).init(tb.getRenderer());
+        em->addSystem<ExplosionSystem>(0).init();
         em->addSystem<ParticleSystem>(0);
-        em->addSystem<RenderSystem>(0, tb.getRenderer());
-        em->addSystem<ParticleRenderSystem>(0, tb.getRenderer());
+        em->addSystem<RenderSystem>(0).init(tb.getRenderer());
+        em->addSystem<ParticleRenderSystem>(0).init(tb.getRenderer());
+
+        std::cout << em->getTypesDebugString() << std::endl;
     }
 
     void close() {

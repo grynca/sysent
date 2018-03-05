@@ -1,4 +1,4 @@
-#include "SystemAll.h"
+#include "System.h"
 #include "EntityManager.h"
 #include "RolesComposition.h"
 
@@ -7,6 +7,12 @@ namespace grynca {
     inline SystemBase::SystemBase()
      : enabled_(true), entities_(this)
     {
+        for (u32 i=0; i<FlagsMask::size(); ++i) {
+            flag_positions_[i] = InvalidId();
+        }
+#ifdef PROFILE_BUILD
+        upd_prof_ = u32(-1);
+#endif
     }
 
     inline SystemBase::~SystemBase()
@@ -43,7 +49,7 @@ namespace grynca {
         for (u32 i=0; i<compatible_compositions_.size(); ++i) {
             u32 comp_id = compatible_compositions_[i];
             if (enabled_) {
-                EventCallbackId cb_id = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb);
+                EventCallbackId cb_id = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb).getId();
                 eh.subscribed.push_back(cb_id);
             }
             else {
@@ -54,15 +60,17 @@ namespace grynca {
 
     template <typename HandlerType>
     inline void SystemBase::subscribeFlags(HandlerType *handler, FlagsMask flags_mask) {
-        tracked_flags_ = flags_mask;
+        // TODO: implement changing of flags
+        ASSERT_M(!subscribed_flags_.any(), "changing of subscribed flags not yet implemented");
 
-        struct Helper {
-            static void f(HandlerType* h, Entity& e, u32 flag_id) {
-                h->recieve(e, flag_id);
-            }
-        };
+        subscribed_flags_ = flags_mask;
+
+        SIMPLE_FUNCTOR(Helper, (HandlerType* h, EntityFlagCtx& efc){
+                h->recieve(efc);
+        });
 
         flag_recieve_func_.bind<Helper>(handler);
+        getEntityManager().setSubscribedFlagsPositions_(this);
     }
 
     template <typename EventType>
@@ -84,8 +92,8 @@ namespace grynca {
         return needed_roles_;
     }
 
-    inline const FlagsMask& SystemBase::getTrackedFlags()const {
-        return tracked_flags_;
+    inline const FlagsMask& SystemBase::getSubscribedFlags()const {
+        return subscribed_flags_;
     }
 
     inline SystemPos SystemBase::getSystemPos()const {
@@ -108,6 +116,18 @@ namespace grynca {
         return entities_.isCurrentlyLooping(ent_type_id);
     }
 
+    inline FlagsMaskLong SystemBase::calcFlagsMaskLong(FlagsMask fm)const {
+        FlagsMaskLong fml;
+        LOOP_SET_BITS(fm, it) {
+            fml.set(getFlagPosition_(it.getPos()));
+        }
+        return fml;
+    }
+
+    inline u32 SystemBase::calcEntsListMemoryUsage()const {
+        return entities_.calcMemoryUsage();
+    }
+
     inline bool SystemBase::isEnabled()const {
         return enabled_;
     }
@@ -128,8 +148,8 @@ namespace grynca {
         for (u32 i=0; i<event_handlers_.size(); ++i) {
             EventHandler& eh = event_handlers_[i];
             if (enabled_) {
-                EventCallbackId cb_id = comp.system_events_.addCallback(eh.event_id, eh.cb);
-                eh.subscribed.push_back(cb_id);
+                auto& cb = comp.system_events_.addCallback(eh.event_id, eh.cb);
+                eh.subscribed.push_back(cb.getId());
             }
             else {
                 eh.subscribed.emplace_back();
@@ -149,23 +169,16 @@ namespace grynca {
         postUpdate_();
     }
 
-    inline void SystemBase::init_(EntityManager& mgr, u16 entity_types_cnt, u32 pipeline_id, u32 system_id, u32& flags_offset_io) {
+    inline const ustring SystemBase::getSystemName_() {
+        return "system " + ssu::toStringA(system_pos_.system_id);
+    }
+
+    inline void SystemBase::init_(EntityManager& mgr, u16 entity_types_cnt, u32 pipeline_id, u32 system_id) {
         entities_.init(mgr, entity_types_cnt);
         system_pos_ = SystemPos(pipeline_id, system_id);
         needed_roles_ = NeededRoles();
 
-        for (u32 fid=0; fid<FlagsMask::size(); ++fid) {
-            if (tracked_flags_[fid]) {
-                ASSERT_M(flags_offset_io < FlagsMaskLong::size(), "Not enough space in flags mask");
-                flag_positions_[fid] = flags_offset_io;
-                flag_positions_mask_ |= (1 << flags_offset_io);
-                flags_offset_io++;
-            } else {
-                flag_positions_[fid] = InvalidId();
-            }
-        }
-
-        PROFILE_ID_INIT(upd_prof_, "system " + ssu::toStringA(system_pos_.system_id));
+        PROFILE_ID_INIT(upd_prof_, getSystemName_());
     }
 
     inline void SystemBase::unsubscribeAllEvents_() {
@@ -187,8 +200,8 @@ namespace grynca {
             for (u32 j=0; j<eh.subscribed.size(); ++j) {
                 ASSERT_M(!eh.subscribed[j].isValid(), "Already subscribed");
                 u32 comp_id = compatible_compositions_[j];
-                EventCallbackId cb_id = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb);
-                eh.subscribed[j] = cb_id;
+                auto& cb = em.roles_compositions_.accComposition(comp_id).system_events_.addCallback(eh.event_id, eh.cb);
+                eh.subscribed[j] = cb.getId();
             }
         }
     }
@@ -200,6 +213,14 @@ namespace grynca {
 
     inline bool SystemScheduled::scheduleEntityUpdate(EntityIndex eid) {
         return entities_.addEntity(eid);
+    }
+
+    inline bool SystemScheduled::unscheduleEntityUpdate(const Entity& e) {
+        return entities_.removeEntity(e.getIndex());
+    }
+
+    inline bool SystemScheduled::unscheduleEntityUpdate(EntityIndex eid) {
+        return entities_.removeEntity(eid);
     }
 
     inline void SystemScheduled::postUpdate_() {

@@ -7,10 +7,7 @@ namespace grynca {
 
     class EntityIndex {
     public:
-        struct Hasher {
-            u32 operator()(const EntityIndex& vi) const;
-        };
-
+        EntityIndex(Index inner_id) : index_(inner_id) {}
         EntityIndex(const EntityIndex& eid) : index_(eid.index_) {}
 
         EntityIndex() {}
@@ -27,14 +24,14 @@ namespace grynca {
         }
 
         u32 getEntityIndex()const { return index_.getIndex(); }
-        u16 getEntityTypeId()const { return index_.getUnused(); }
+        u16 getEntityTypeId()const { return index_.getAuxIndex(); }
         u16 getVersion()const { return index_.getVersion(); }
         bool isValid()const { return index_.isValid(); }
 
         Index& accInnerIndex() { return index_; }
         const Index& getInnerIndex()const { return index_; }
         void setEntityIndex(u32 id) { index_.setIndex(id); }
-        void setEntityTypeId(u16 et) { index_.setUnused(et); }
+        void setEntityTypeId(u16 et) { index_.setAuxIndex(et); }
     private:
         friend bool operator==(const EntityIndex& i1, const EntityIndex& i2);
         friend bool operator!=(const EntityIndex& i1, const EntityIndex& i2);
@@ -55,9 +52,10 @@ namespace grynca {
         return i1.index_ != i2.index_;
     }
 
-    inline u32 EntityIndex::Hasher::operator()(const EntityIndex& vi) const {
-        return calcHash64(vi.index_.getUID());
-    }
+    template <> class Hasher<EntityIndex> {
+    public:
+        u32 operator()(const EntityIndex& key) const { return calcHash64(key.getInnerIndex().getUID()); }
+    };
 }
 
 #endif //ENTITYINDEX_H

@@ -18,6 +18,8 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 ENDIF()
 
 IF (WIN32)
+    include_directories(c:/DEV/ENV/msys64/mingw64/include/)
+    link_directories(c:/DEV/ENV/msys64/mingw64/lib/)
     include_directories(c:/DEV/gamedev/base/include/)
 ELSE()
     include_directories(/home/grynca/DEV/gamedev/base/include)
@@ -27,7 +29,7 @@ option(USE_SDL2 "Use SDL2" ON)
 IF (USE_SDL2)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_SDL2=1" )
     IF (WIN32)
-        # TODO:
+        set(LIBS "-lglew32 -lglu32 -lopengl32 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image")
     ELSE()
         set(LIBS "-lGLEW -lGL -lGLU -lSDL2")
     ENDIF()
@@ -46,7 +48,7 @@ set(SOURCE_FILES
         include/sysent/EntitiesList.inl
         include/sysent/RolesComposition.h
         include/sysent/RolesComposition.inl
-        include/sysent/SystemAll.h
+        include/sysent/System.h
         include/sysent/System.inl
         include/sysent/SystemPipeline.h
         include/sysent/Masks.h

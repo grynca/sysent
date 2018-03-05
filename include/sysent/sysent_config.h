@@ -16,11 +16,11 @@
 #ifndef SYSENT_MAX_SYSTEMS_PER_PIPELINE
 #   define SYSENT_MAX_SYSTEMS_PER_PIPELINE 32
 #endif
+#ifndef SYSENT_MAX_ENTITY_TYPES
+#   define SYSENT_MAX_ENTITY_TYPES 128
+#endif
 #ifndef SYSENT_MAX_ENTITY_COMPS
 #   define SYSENT_MAX_ENTITY_COMPS 32
-#endif
-#ifndef SYSENT_MAX_COMPONENT_SIZE
-#   define SYSENT_MAX_COMPONENT_SIZE 64       // should fit to cache line
 #endif
 
 #endif //SYSENT_CONFIG_H

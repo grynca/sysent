@@ -9,8 +9,9 @@ namespace grynca {
 
     template <typename EntityType>
     inline void EntityTypeInfo::init() {
-        EntityType::ComponentTypes::template callOnTypes<Creator_>(*this);
-        initial_component_roles_ = Entity::getInitialComponentsRoles_<typename EntityType::ComponentTypes>();
+        type_info_ = Type<EntityType>::getInternalTypeInfo();
+        EntityType::ComponentDataTypes::template callOnTypes<InitCompsInfo>(*this);
+        initial_component_roles_ = Entity::getStaticComponentRoles<typename EntityType::ComponentDataTypes>();
     }
 
     template <typename CompType>
@@ -48,16 +49,18 @@ namespace grynca {
         return components_count_;
     }
 
+    inline const TypeInfo& EntityTypeInfo::getTypeInfo()const {
+        return type_info_;
+    }
+
     template <typename TP, typename T>
-    inline void EntityTypeInfo::Creator_::f(EntityTypeInfo& ti) {
+    inline void EntityTypeInfo::InitCompsInfo::f(EntityTypeInfo& ti) {
     // static
         u32 tid = Type<T, EntityTypeInfo>::getInternalTypeId();
         if (tid >= ti.component_positions_.size())
             ti.component_positions_.resize(tid+1, u32(-1));
         ti.component_positions_[tid] = ti.components_count_;
         ++ti.components_count_;
-        uint32_t comp_size = Type<T>::getSize();
-        ASSERT_M(comp_size <= SYSENT_MAX_COMPONENT_SIZE, "Entity component is too large");
-        ti.components_size_+= comp_size;
+        ti.components_size_+= u32(Type<T>::getSize());
     }
 }

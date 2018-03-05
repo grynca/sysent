@@ -30,8 +30,10 @@ namespace grynca {
         // returns internal type ids of contained components
         fast_vector<u32> getContainedComponents()const;
         u32 getComponentsCount()const;
+
+        const TypeInfo& getTypeInfo()const;
     private:
-        struct Creator_ {
+        struct InitCompsInfo {
             template <typename TP, typename T>
             static void f(EntityTypeInfo& ti);
         };
@@ -42,6 +44,7 @@ namespace grynca {
         u32 components_size_;
         u32 components_count_;
         RolesMask initial_component_roles_;
+        TypeInfo type_info_;
     };
 }
 #endif //ENTITYTYPEINFO_H

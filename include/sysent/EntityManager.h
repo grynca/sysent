@@ -18,26 +18,40 @@ namespace grynca {
     typedef fast_vector<Entity> EntityVec;
 
     class EntityManager {
+        DISALLOW_COPY_AND_ASSIGN(EntityManager);
     public:
         EntityManager();
-        virtual ~EntityManager() ;
+        virtual ~EntityManager();
 
         template <typename EntityTypes>
         void addEntityTypes(u32 initial_reserve);
-        u32 getTypesCount()const;
 
         Entity newEntity(u16 entity_type_id);
+        Entity getEntity(EntityIndex id)const;           // faster does not check for validity
+        bool tryGetEntity(EntityIndex id, Entity& e_out)const;   // checks for validity
 
-        Entity getEntity(EntityIndex id);           // faster does not check for validity
-        Entity tryGetEntity(EntityIndex id);        // checks for validity, check e.isValid()
+        template <typename LoopFunc>
+        void loopEntities(u16 entities_type_id, const LoopFunc& lf);
+
+        // wraps entity in EntityAcc
+        template <typename EntityAcc>
+        EntityAcc newEntity(u16 entity_type_id);
+        template <typename EntityAcc>
+        EntityAcc getEntity(EntityIndex id)const;
+        template <typename EntityAcc>
+        bool tryGetEntity(EntityIndex id, EntityAcc& eac_out)const;
+
+
+        u32 getEntitiesCount()const;
 
         EntityTypeInfo& getEntityTypeInfo(u16 entity_type_id);
-        u32 getEntityTypesCount()const;
+        u16 getEntityTypesCount()const;
         EntitiesPool& getEntitiesPool(u16 entity_type_id);
 
+        // system must have default constructor
         // systems are looped in order in which they are added
-        template <typename SystemType, typename... ConstrArgs>
-        SystemType& addSystem(u32 pipeline_id, ConstrArgs&&... args);
+        template <typename SystemType>
+        SystemType& addSystem(u32 pipeline_id);
         // NULL when system type is not found
         template <typename SystemType>
         SystemType* getSystemByType(u32 pipeline_id);
@@ -46,19 +60,36 @@ namespace grynca {
         u32 getSystemsPipelineSize(u32 pipeline_id);
 
         void updateSystemsPipeline(u32 pipeline_id, f32 dt);
-        ustring getTypesDebugString()const;
+        std::string getTypesDebugString()const;
+
+        // gets called just before entity data is destroyed
+        ObjFunc<void(Entity& ent)>& accBeforeEntityKilled();
+
+        // if you need more control for destruction order
+        void destroy();
+
+        // get pointers to component buffers for faster access
+        template <typename ComponentTypes>
+        void getComponentsBufs(u16 entity_type_id, ChunkedBuffer** comp_bufs);
     private:
         friend class EntityTypesInitializer_;
         friend class Entity;
         friend class SystemBase;
+        template <typename...> friend class EntityAccessor;
 
         struct EntityTypesInitializer_ {
             template <typename EntityTypes, typename T>
             static void f(EntityManager& mgr, u32 initial_reserve);
         };
 
+        struct GetCompBufs_ {
+            template <typename CompTypes, typename T>
+            static void f(EntityManager& emgr, u16 entity_type_id, ChunkedBuffer** comp_bufs);
+        };
+
         template <typename EventType>
         u32 getEventId_()const;
+        void setSubscribedFlagsPositions_(SystemBase* sb);
 
         void afterEntityRoleAdded_(Entity& ent, u32 role_id);
         void beforeEntityRoleRemoved_(Entity& ent, u32 role_id);
@@ -66,10 +97,11 @@ namespace grynca {
         void afterEntityCreated_(Entity& ent);
 
 
+        u32 entities_cnt_;
+        u16 entity_types_cnt_;
         RolesCompositions roles_compositions_;
         SystemsPipeline pipelines_[SYSENT_PIPELINES_CNT];
-        fast_vector<EntityTypeCtx> entity_types_;
-        fast_vector<u32> type_ids_map_; // maps internal type ids to type ids in entity types pack
+        EntityTypeCtx entity_types_[SYSENT_MAX_ENTITY_TYPES];
 
         SystemsMask systems_for_role_[SYSENT_PIPELINES_CNT][RolesMask::size()];     // systems that need role
 
@@ -81,6 +113,8 @@ namespace grynca {
         // deferred add/remove of entities (called before system update)
         fast_vector<Entity> to_create_;
         fast_vector<Entity> to_remove_;
+
+        ObjFunc<void(Entity& ent)> before_entity_killed_;
     };
 }
 

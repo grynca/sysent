@@ -3,9 +3,41 @@
 
 namespace grynca {
 
+    template <typename CompTypes>
+    template <typename CT>
+    inline const CT& CompsPtrs<CompTypes>::get()const {
+        u32 pos = CompTypes::template pos<CT>();
+        ASSERT_M(pos!=-1, "Invalid Component Type.");
+        return *(CT*)ptrs_[pos];
+    }
+
+    template <typename CompTypes>
+    template <typename CT>
+    inline const CT* CompsPtrs<CompTypes>::getPtr()const {
+        u32 pos = CompTypes::template pos<CT>();
+        ASSERT_M(pos!=-1, "Invalid Component Type.");
+        return *(CT*)ptrs_[pos];
+    }
+
+    template <typename CompTypes>
+    template <typename CT>
+    inline CT& CompsPtrs<CompTypes>::acc() {
+        u32 pos = CompTypes::template pos<CT>();
+        ASSERT_M(pos!=-1, "Invalid Component Type.");
+        return (CT*)ptrs_[pos];
+    }
+
+    template <typename CompTypes>
+    template <typename CT>
+    inline CT* CompsPtrs<CompTypes>::accPtr() {
+        u32 pos = CompTypes::template pos<CT>();
+        ASSERT_M(pos!=-1, "Invalid Component Type.");
+        return (CT*)ptrs_[pos];
+    }
+
     inline EntitiesList::EntitiesList(SystemBase* sys)
      : system_(sys), ents_cnt_(0), pool_(NULL),
-       looped_tid_(InvalidId()), loop_scanner_(NULL, 0)
+       looped_tid_(u16(-1)), loop_scanner_(NULL, 0)
     {
         looped_e_.mgr_ = NULL;
     }
@@ -22,18 +54,17 @@ namespace grynca {
     }
 
     inline void EntitiesList::nextType() {
-        ASSERT(looped_tid_ != InvalidId());
+        ASSERT(looped_tid_ != u16(-1));
         nextTypeInner_(looped_tid_+1);
     }
 
     inline void EntitiesList::nextIndex() {
         ASSERT(checkIndex());
         nextIndexInner_();
-        looped_e_.clearTrackedFlagsForSystem_(system_);
     }
 
     inline bool EntitiesList::checkType() {
-        return looped_tid_ != InvalidId();
+        return looped_tid_ != u16(-1);
     }
     inline bool EntitiesList::checkIndex() {
         return loop_scanner_.isValid();
@@ -42,8 +73,53 @@ namespace grynca {
     template <typename EntityFunc>
     inline void EntitiesList::loopEntities(const EntityFunc& loop_f) {
         for (Entity& e = initLoop(); checkType(); nextType()) {
-            for (; checkIndex(); nextIndex()) {
+            while (checkIndex()) {
                 loop_f(e);
+                looped_e_.clearTrackedFlagsForSystem(system_);
+                nextIndex();
+            }
+        }
+    }
+
+    template <typename ComponentTypes, typename EntityFunc>
+    inline void EntitiesList::loopEntities(const EntityFunc& loop_f) {
+        CompsPtrs<ComponentTypes> cptrs;
+        ChunkedBuffer* comp_bufs[ComponentTypes::getTypesCount()];
+        for (Entity& e = initLoop(); checkType(); nextType()) {
+            getManager().getComponentsBufs<ComponentTypes>(looped_tid_, comp_bufs);
+            while (checkIndex()) {
+                for (u32 i=0; i<ComponentTypes::getTypesCount(); ++i) {
+                    cptrs.accPtrs()[i] = comp_bufs[i]->accItem(looped_e_.getIndex().getEntityIndex());
+                }
+                loop_f(cptrs, e);
+                looped_e_.clearTrackedFlagsForSystem(system_);
+                nextIndex();
+            }
+        }
+    }
+
+    template <typename EntityFunc>
+    inline void EntitiesList::loopEntitiesWOCF(const EntityFunc& loop_f) {
+        for (Entity& e = initLoop(); checkType(); nextType()) {
+            while (checkIndex()) {
+                loop_f(e);
+                nextIndex();
+            }
+        }
+    }
+
+    template <typename ComponentTypes, typename EntityFunc>
+    inline void EntitiesList::loopEntitiesWOCF(const EntityFunc& loop_f) {
+        CompsPtrs<ComponentTypes> cptrs;
+        ChunkedBuffer* comp_bufs[ComponentTypes::getTypesCount()];
+        for (Entity& e = initLoop(); checkType(); nextType()) {
+            getManager().getComponentsBufs<ComponentTypes>(looped_tid_, comp_bufs);
+            while (checkIndex()) {
+                for (u32 i=0; i<ComponentTypes::getTypesCount(); ++i) {
+                    cptrs.accPtrs()[i] = comp_bufs[i]->accItem(looped_e_.getIndex().getEntityIndex());
+                }
+                loop_f(cptrs, e);
+                nextIndex();
             }
         }
     }
@@ -105,6 +181,16 @@ namespace grynca {
         ents_cnt_ = 0;
     }
 
+    inline u32 EntitiesList::calcMemoryUsage()const {
+        u32 rslt = sizeof(EntitiesList);
+        rslt += last_word_with_ent_.size()*sizeof(u32);
+        rslt += ents_.size()*sizeof(Bits);
+        for (u32 i=0; i<ents_.size(); ++i) {
+            rslt += ents_[i].getBytesCount();
+        }
+        return rslt;
+    }
+
     inline void EntitiesList::nextTypeInner_(u32 pos) {
         looped_tid_ = pos;
         for (; looped_tid_<ents_.size(); ++looped_tid_) {
@@ -117,7 +203,7 @@ namespace grynca {
                 return;
             }
         }
-        looped_tid_ = InvalidId();
+        looped_tid_ = u16(-1);
     }
 
     inline void EntitiesList::nextIndexInner_() {

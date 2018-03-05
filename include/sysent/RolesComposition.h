@@ -36,15 +36,22 @@ namespace grynca {
     };
 
 
+    template <> class Hasher<RolesMask> {
+    public:
+        u32 operator()(const RolesMask& key) const { return calcHash64((u64)key.getWords()[0]); }
+    };
+
     class RolesCompositions {
     public:
-        u32 getId(const RolesMask& mask, SystemsPipeline* pipelines);
+        // if composition does not exist yet, it is created and compatible systems are found
+        u32 getOrCreateId(const RolesMask &mask, SystemsPipeline *pipelines);
 
         const RolesComposition& getComposition(u32 id)const;
         RolesComposition& accComposition(u32 id);
         u32 getInfosCount()const;
     private:
         fast_vector<RolesComposition> compositions_;
+        HashMap<u32, RolesMask, Hasher<RolesMask>> rm_to_id;
     };
 }
 #endif //ROLESCOMPOSITION_H

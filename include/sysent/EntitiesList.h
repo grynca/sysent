@@ -7,6 +7,25 @@
 
 namespace grynca {
 
+    template <typename CompTypes>
+    class CompsPtrs {
+    public:
+        using TP = CompTypes;
+
+        template <typename CT>
+        const CT& get()const;
+        template <typename CT>
+        const CT* getPtr()const;
+        template <typename CT>
+        CT& acc();
+        template <typename CT>
+        CT* accPtr();
+
+        u8** accPtrs() { return ptrs_; }
+    private:
+        u8* ptrs_[CompTypes::getTypesCount()];
+    };
+
     class EntitiesList {
     public:
         EntitiesList(SystemBase* sys);
@@ -19,8 +38,19 @@ namespace grynca {
         void nextIndex();
         bool checkType();
         bool checkIndex();
+
         template <typename EntityFunc>
         void loopEntities(const EntityFunc& loop_f);
+
+        // EntityFunc(CompsPtrs<ComponentTypes>& comps, Entity& e)
+        template <typename ComponentTypes, typename EntityFunc>
+        void loopEntities(const EntityFunc& loop_f);
+
+        // does not clear flags for system during loop
+        template <typename EntityFunc>
+        void loopEntitiesWOCF(const EntityFunc& loop_f);
+        template <typename ComponentTypes, typename EntityFunc>
+        void loopEntitiesWOCF(const EntityFunc& loop_f);
 
         EntityManager& getManager();
         u32 getCount()const;
@@ -32,6 +62,9 @@ namespace grynca {
         bool removeEntity(EntityIndex eid);
 
         void clear();
+
+        // in bytes
+        u32 calcMemoryUsage()const;
     protected:
         friend class SystemBase;
 
@@ -48,7 +81,7 @@ namespace grynca {
 
         // current loop pos
         EntitiesPool* pool_;
-        u32 looped_tid_;
+        u16 looped_tid_;
         BitScanner<Bits::word_type> loop_scanner_;
     };
 }

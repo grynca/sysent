@@ -1,5 +1,5 @@
 #include "RolesComposition.h"
-#include "SystemAll.h"
+#include "System.h"
 #include "sysent_config.h"
 
 namespace grynca {
@@ -34,20 +34,15 @@ namespace grynca {
         system_events_.emitT(event);
     }
 
-    inline u32 RolesCompositions::getId(const RolesMask& mask, SystemsPipeline* pipelines) {
-        // TODO: maybe some faster find via hashmap
-        u32 comp_id = 0;
-        for (; comp_id<compositions_.size(); ++comp_id) {
-            if (compositions_[comp_id].getMask() == mask)
-                break;
-        }
-
-        bool found = comp_id!=compositions_.size();
-        if (!found) {
+    inline u32 RolesCompositions::getOrCreateId(const RolesMask &mask, SystemsPipeline *pipelines) {
+        bool was_added;
+        u32* id_ptr = rm_to_id.findOrAddItem(mask, was_added);
+        if (was_added) {
+            *id_ptr = u32(compositions_.size());
             compositions_.emplace_back();
             RolesComposition& comp = compositions_.back();
             comp.mask_ = mask;
-            comp.id_ = comp_id;
+            comp.id_ = *id_ptr;
             for (u32 i=0; i<SYSENT_PIPELINES_CNT; ++i) {
                 for (u32 j=0; j<pipelines[i].systems.size(); ++j) {
                     SystemBase* sb = pipelines[i].systems[j];
@@ -55,7 +50,7 @@ namespace grynca {
                 }
             }
         }
-        return comp_id;
+        return *id_ptr;
     }
 
     inline const RolesComposition& RolesCompositions::getComposition(u32 id)const {

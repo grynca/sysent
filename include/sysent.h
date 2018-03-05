@@ -8,5 +8,5 @@
 #include "sysent/EntityTypeInfo.h"
 #include "sysent/RolesComposition.h"
 #include "sysent/EntityManager.h"
-#include "sysent/SystemAll.h"
+#include "sysent/System.h"
 #endif //TTEST_SYSENT_H
